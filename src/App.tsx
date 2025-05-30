@@ -59,13 +59,14 @@ const TICKET_TIPOS = [
   "Otro"
 ];
 
+// Update ESTADO_COLORES to use default Tailwind colors for both light and dark mode
 const ESTADO_COLORES: Record<TicketEstado, string> = {
-  "Pendiente": "bg-pastel-yellow text-yellow-800",
-  "Coordinado": "bg-pastel-blue text-blue-800",
-  "En Proceso": "bg-pastel-blue text-blue-800",
-  "Completado": "bg-pastel-green text-green-800",
-  "Reagendado": "bg-pastel-navy text-blue-800",
-  "Cancelado": "bg-pastel-red text-red-800",
+  "Pendiente": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+  "Coordinado": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
+  "En Proceso": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100",
+  "Completado": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+  "Reagendado": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100",
+  "Cancelado": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
 };
 
 // Firestore collection path
@@ -168,10 +169,10 @@ const Sidebar: React.FC<{
       {isSidebarOpen && (
         <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={toggleSidebar}></div>
       )}
-      <aside className={`fixed top-0 left-0 z-40 h-screen bg-pastel-blue text-gray-800 dark:bg-pastel-navy dark:text-gray-100 transition-transform transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-y-0 lg:flex lg:w-64 lg:flex-col`}>
-        <div className="flex items-center justify-between p-4 h-16 border-b border-pastel-blue-200 dark:border-pastel-navy-200">
-          <img src="https://www.mistatas.cl/assets/img/logo-small.png" alt="AMAIA Logo" className="h-10 w-auto" style={{maxWidth:'120px'}} />
-          <button onClick={toggleSidebar} className="lg:hidden text-gray-800 dark:text-gray-100 p-2 rounded-md hover:bg-pastel-blue-200 dark:hover:bg-pastel-navy-200">
+      <aside className={`fixed top-0 left-0 z-40 h-screen bg-blue-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 transition-transform transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-y-0 lg:flex lg:w-64 lg:flex-col`}>
+        <div className="flex items-center justify-between p-4 h-16 border-b border-blue-200 dark:border-gray-800">
+          <img src="https://www.mistatas.cl/assets/img/logo-small.png" alt="AMAIA Logo" className="h-10 max-h-12 w-auto object-contain" style={{maxWidth:'120px'}} />
+          <button onClick={toggleSidebar} className="lg:hidden text-gray-800 dark:text-gray-100 p-2 rounded-md hover:bg-blue-200 dark:hover:bg-gray-800">
             <Icon name={X} size={24} />
           </button>
         </div>
@@ -180,23 +181,23 @@ const Sidebar: React.FC<{
             <button
               key={item.name}
               onClick={() => { setView(item.view); if (isSidebarOpen && window.innerWidth < 1024) toggleSidebar(); }}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-pastel-blue-200 dark:hover:bg-pastel-navy-200 ${currentView === item.view ? "bg-pastel-blue-300 dark:bg-pastel-navy-300" : ""}`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-blue-200 dark:hover:bg-gray-800 ${currentView === item.view ? "bg-blue-300 dark:bg-gray-700" : ""}`}
             >
               <Icon name={item.icon} size={20} />
               <span>{item.name}</span>
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-pastel-blue-200 dark:border-pastel-navy-200 flex flex-col gap-2">
-            {userId && (
-                <div className="flex items-center space-x-2 p-2 bg-pastel-blue-200 dark:bg-pastel-navy-200 rounded-md">
-                    <Icon name={UserIcon} size={18} className="text-pastel-blue-700 dark:text-pastel-navy-100" />
-                    <span className="text-xs truncate" title={userId}>ID: {userId.substring(0,12)}...</span>
-                </div>
-            )}
-            <button onClick={onLogout} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-700 bg-pastel-red hover:bg-pastel-red-200 dark:text-red-200 dark:bg-pastel-red-800 dark:hover:bg-pastel-red-700 mt-2">
-              <Icon name={RefreshCw} size={18} /> Cerrar sesión
-            </button>
+        <div className="p-4 border-t border-blue-200 dark:border-gray-800 flex flex-col gap-2">
+          {userId && (
+            <div className="flex items-center space-x-2 p-2 bg-blue-200 dark:bg-gray-800 rounded-md">
+              <Icon name={UserIcon} size={18} className="text-blue-700 dark:text-gray-100" />
+              <span className="text-xs truncate" title={userId}>ID: {userId.substring(0,12)}...</span>
+            </div>
+          )}
+          <button onClick={onLogout} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-200 dark:bg-red-900 dark:hover:bg-red-700 mt-2">
+            <Icon name={RefreshCw} size={18} /> Cerrar sesión
+          </button>
         </div>
       </aside>
     </>
@@ -1027,7 +1028,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-screen bg-pastel-blue-100 dark:bg-pastel-navy-100 ${darkMode ? 'dark' : ''}`}>
+    <div className={`flex h-screen bg-blue-50 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>
       <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} onLogout={handleLogout} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header toggleSidebar={toggleSidebar} currentViewTitle={viewTitles[currentView] || ''} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
