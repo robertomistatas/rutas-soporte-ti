@@ -714,9 +714,13 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
             >
               <Icon name={Calendar} size={20} className="mr-2"/> Ver Calendario
             </button>
-            <div className="relative">
-              <button 
-                onClick={() => document.getElementById('pdfDatePicker')?.showPicker()}
+            <div className="relative">              <button 
+                onClick={() => {
+                  const picker = document.getElementById('pdfDatePicker') as HTMLInputElement;
+                  if (picker) {
+                    picker.click();
+                  }
+                }}
                 className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
               >
                 <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
