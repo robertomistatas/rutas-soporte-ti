@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
 import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import LoginPage from './LoginPage';
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -59,12 +60,12 @@ const TICKET_TIPOS = [
 ];
 
 const ESTADO_COLORES: Record<TicketEstado, string> = {
-  "Pendiente": "bg-yellow-500 text-yellow-800",
-  "Coordinado": "bg-blue-500 text-blue-800",
-  "En Proceso": "bg-indigo-500 text-indigo-800",
-  "Completado": "bg-green-500 text-green-800",
-  "Reagendado": "bg-purple-500 text-purple-800",
-  "Cancelado": "bg-red-500 text-red-800",
+  "Pendiente": "bg-pastel-yellow text-yellow-800",
+  "Coordinado": "bg-pastel-blue text-blue-800",
+  "En Proceso": "bg-pastel-blue text-blue-800",
+  "Completado": "bg-pastel-green text-green-800",
+  "Reagendado": "bg-pastel-navy text-blue-800",
+  "Cancelado": "bg-pastel-red text-red-800",
 };
 
 // Firestore collection path
@@ -155,32 +156,22 @@ const Sidebar: React.FC<{
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   userId: string | null;
-}> = ({ currentView, setView, isSidebarOpen, toggleSidebar, userId }) => {
+  onLogout: () => void;
+}> = ({ currentView, setView, isSidebarOpen, toggleSidebar, userId, onLogout }) => {
   const navItems = [
     { name: "Dashboard", icon: LayoutDashboard, view: "dashboard" },
-    { name: "Tickets", icon: List, view: "tickets" },
+    { name: "Soportes", icon: List, view: "tickets" },
     { name: "Calendario", icon: Calendar, view: "calendar" },
-    // { name: "Técnicos", icon: Users, view: "technicians" }, // Future
-    // { name: "Rutas", icon: MapPin, view: "routes" }, // Future
   ];
-
   return (
     <>
-      {/* Mobile overlay */}
       {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/30 lg:hidden"
-          onClick={toggleSidebar}
-        ></div>
+        <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={toggleSidebar}></div>
       )}
-      <aside
-        className={`fixed top-0 left-0 z-40 h-screen bg-blue-700 dark:bg-gray-900 text-white transition-transform transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static lg:inset-y-0 lg:flex lg:w-64 lg:flex-col`}
-      >
-        <div className="flex items-center justify-between p-4 h-16 border-b border-blue-600 dark:border-gray-700">
-          <span className="text-2xl font-semibold">AMAIA</span>
-          <button onClick={toggleSidebar} className="lg:hidden text-white p-2 rounded-md hover:bg-blue-600 dark:hover:bg-gray-700">
+      <aside className={`fixed top-0 left-0 z-40 h-screen bg-pastel-blue text-gray-800 dark:bg-pastel-navy dark:text-gray-100 transition-transform transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static lg:inset-y-0 lg:flex lg:w-64 lg:flex-col`}>
+        <div className="flex items-center justify-between p-4 h-16 border-b border-pastel-blue-200 dark:border-pastel-navy-200">
+          <img src="https://www.mistatas.cl/assets/img/logo-small.png" alt="AMAIA Logo" className="h-10 w-auto" style={{maxWidth:'120px'}} />
+          <button onClick={toggleSidebar} className="lg:hidden text-gray-800 dark:text-gray-100 p-2 rounded-md hover:bg-pastel-blue-200 dark:hover:bg-pastel-navy-200">
             <Icon name={X} size={24} />
           </button>
         </div>
@@ -189,22 +180,23 @@ const Sidebar: React.FC<{
             <button
               key={item.name}
               onClick={() => { setView(item.view); if (isSidebarOpen && window.innerWidth < 1024) toggleSidebar(); }}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-blue-600 dark:hover:bg-gray-700 ${
-                currentView === item.view ? "bg-blue-800 dark:bg-gray-700" : ""
-              }`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-md text-sm font-medium hover:bg-pastel-blue-200 dark:hover:bg-pastel-navy-200 ${currentView === item.view ? "bg-pastel-blue-300 dark:bg-pastel-navy-300" : ""}`}
             >
               <Icon name={item.icon} size={20} />
               <span>{item.name}</span>
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-blue-600 dark:border-gray-700">
+        <div className="p-4 border-t border-pastel-blue-200 dark:border-pastel-navy-200 flex flex-col gap-2">
             {userId && (
-                <div className="flex items-center space-x-2 p-2 bg-blue-600 dark:bg-gray-700 rounded-md">
-                    <Icon name={UserIcon} size={18} className="text-blue-200 dark:text-gray-400" />
+                <div className="flex items-center space-x-2 p-2 bg-pastel-blue-200 dark:bg-pastel-navy-200 rounded-md">
+                    <Icon name={UserIcon} size={18} className="text-pastel-blue-700 dark:text-pastel-navy-100" />
                     <span className="text-xs truncate" title={userId}>ID: {userId.substring(0,12)}...</span>
                 </div>
             )}
+            <button onClick={onLogout} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-700 bg-pastel-red hover:bg-pastel-red-200 dark:text-red-200 dark:bg-pastel-red-800 dark:hover:bg-pastel-red-700 mt-2">
+              <Icon name={RefreshCw} size={18} /> Cerrar sesión
+            </button>
         </div>
       </aside>
     </>
@@ -333,7 +325,7 @@ const TicketForm: React.FC<{
   const errorClass = "text-red-500 text-xs mt-1";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={ticketToEdit ? "Editar Ticket" : "Crear Nuevo Ticket"}>
+    <Modal isOpen={isOpen} onClose={onClose} title={ticketToEdit ? "Editar Soporte" : "Crear Nuevo Soporte"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {errors.form && <p className={errorClass}>{errors.form}</p>}
         
@@ -409,7 +401,7 @@ const TicketForm: React.FC<{
             Cancelar
           </button>
           <button type="submit" className="px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-            {ticketToEdit ? "Actualizar Ticket" : "Guardar Ticket"}
+            {ticketToEdit ? "Actualizar Soporte" : "Guardar Soporte"}
           </button>
         </div>
       </form>
@@ -697,7 +689,7 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
               onClick={onNewTicket}
               className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              <Icon name={Plus} size={20} className="mr-2"/> Crear Nuevo Ticket
+              <Icon name={Plus} size={20} className="mr-2"/> Crear Nuevo Soporte
             </button>
             <button 
               onClick={() => setView('calendar')}
@@ -716,7 +708,7 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
               className="w-full flex items-center justify-center px-4 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
               disabled={tickets.length === 0}
             >
-              <Icon name={FileText} size={20} className="mr-2"/> Exportar Tickets (JSON)
+              <Icon name={FileText} size={20} className="mr-2"/> Exportar Soportes (JSON)
             </button>
           </div>
         </div>
@@ -834,6 +826,7 @@ const App: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ticketIdToDelete, setTicketIdToDelete] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -845,21 +838,9 @@ const App: React.FC = () => {
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
   useEffect(() => {
-    const attemptSignIn = async () => {
-      try {
-        // Elimina el uso de __initial_auth_token para evitar errores de compilación en producción
-        await signInAnonymously(auth);
-        console.log("Signed in anonymously.");
-      } catch (error) {
-        console.error("Firebase sign-in error:", error);
-        // Fallback or error display if needed
-      }
-    };
-    
-    attemptSignIn();
-
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setUserId(user?.uid || null);
+      setUser(user);
       setAuthReady(true); 
       console.log("Auth state changed. User ID:", user?.uid);
     });
@@ -1010,8 +991,8 @@ const App: React.FC = () => {
   
   const viewTitles: Record<string, string> = {
     dashboard: "Dashboard Principal",
-    tickets: "Lista de Tickets",
-    calendar: "Calendario de Servicios",
+    tickets: "Lista de Soportes",
+    calendar: "Calendario de Soportes",
     technicians: "Gestión de Técnicos",
     routes: "Planificación de Rutas",
   };
@@ -1025,13 +1006,8 @@ const App: React.FC = () => {
         </div>
       );
     }
-    if (!userId && authReady) {
-      return (
-        <div className="flex-1 flex items-center justify-center">
-          <Icon name={AlertCircle} size={32} className="text-red-600 dark:text-red-400" />
-          <p className="ml-2 text-gray-600 dark:text-gray-300">No se pudo identificar al usuario.</p>
-        </div>
-      );
+    if (!user) {
+      return <LoginPage onLogin={setUser} />;
     }
     switch (currentView) {
       case "dashboard":
@@ -1045,9 +1021,14 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+  };
+
   return (
-    <div className={`flex h-screen bg-gray-100 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>
-      <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} />
+    <div className={`flex h-screen bg-pastel-blue-100 dark:bg-pastel-navy-100 ${darkMode ? 'dark' : ''}`}>
+      <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} onLogout={handleLogout} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header toggleSidebar={toggleSidebar} currentViewTitle={viewTitles[currentView] || ''} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <main className="flex-1 overflow-y-auto">
@@ -1066,7 +1047,7 @@ const App: React.FC = () => {
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={confirmDeleteTicket}
         title="Confirmar Eliminación"
-        message={`¿Estás seguro de que deseas eliminar este ticket? Esta acción no se puede deshacer.`}
+        message={`¿Estás seguro de que deseas eliminar este soporte? Esta acción no se puede deshacer.`}
       />
     </div>
   );
