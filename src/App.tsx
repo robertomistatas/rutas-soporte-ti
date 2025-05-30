@@ -1211,8 +1211,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-screen bg-blue-50 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>
-      <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} onLogout={handleLogout} />
+    <div className={`flex h-screen bg-blue-50 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>      <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} user={user} onLogout={handleLogout} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header toggleSidebar={toggleSidebar} currentViewTitle={viewTitles[currentView] || ''} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <main className="flex-1 overflow-y-auto">
