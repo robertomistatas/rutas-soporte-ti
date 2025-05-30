@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
 import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import LoginPage from './LoginPage';
+import html2pdf from 'html2pdf.js';
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -52,6 +53,11 @@ type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "
 const TICKET_ESTADOS: TicketEstado[] = ["Pendiente", "Coordinado", "En Proceso", "Completado", "Reagendado", "Cancelado"];
 const TICKET_TIPOS = [
   "Instalación GPS Colgante",
+  "Instalación GPS Reloj",
+  "Instalación APP",
+  "Reinstalación APP",
+  "Instalación Plan Full",
+  "Instalación Plan Mayor",
   "Retiro de dispositivos",
   "Desinstalación Plan Mayor",
   "Revisión dispositivos",
@@ -61,12 +67,12 @@ const TICKET_TIPOS = [
 
 // Update ESTADO_COLORES to use default Tailwind colors for both light and dark mode
 const ESTADO_COLORES: Record<TicketEstado, string> = {
-  "Pendiente": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-  "Coordinado": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
-  "En Proceso": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100",
-  "Completado": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-  "Reagendado": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100",
-  "Cancelado": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
+  "Pendiente": "bg-yellow-200 text-yellow-800 dark:bg-yellow-300 dark:text-yellow-900",
+  "Coordinado": "bg-blue-200 text-blue-800 dark:bg-blue-300 dark:text-blue-900",
+  "En Proceso": "bg-indigo-200 text-indigo-800 dark:bg-indigo-300 dark:text-indigo-900",
+  "Completado": "bg-green-200 text-green-800 dark:bg-green-300 dark:text-green-900",
+  "Reagendado": "bg-purple-200 text-purple-800 dark:bg-purple-300 dark:text-purple-900",
+  "Cancelado": "bg-red-200 text-red-800 dark:bg-red-300 dark:text-red-900",
 };
 
 // Firestore collection path
@@ -157,8 +163,9 @@ const Sidebar: React.FC<{
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   userId: string | null;
+  user: any;
   onLogout: () => void;
-}> = ({ currentView, setView, isSidebarOpen, toggleSidebar, userId, onLogout }) => {
+}> = ({ currentView, setView, isSidebarOpen, toggleSidebar, userId, user, onLogout }) => {
   const navItems = [
     { name: "Dashboard", icon: LayoutDashboard, view: "dashboard" },
     { name: "Soportes", icon: List, view: "tickets" },
@@ -188,13 +195,12 @@ const Sidebar: React.FC<{
             </button>
           ))}
         </nav>
-        <div className="p-4 border-t border-blue-200 dark:border-gray-800 flex flex-col gap-2">
-          {userId && (
-            <div className="flex items-center space-x-2 p-2 bg-blue-200 dark:bg-gray-800 rounded-md">
-              <Icon name={UserIcon} size={18} className="text-blue-700 dark:text-gray-100" />
-              <span className="text-xs truncate" title={userId}>ID: {userId.substring(0,12)}...</span>
-            </div>
-          )}
+        <div className="p-4 border-t border-blue-200 dark:border-gray-800 flex flex-col gap-2">            {user && (
+                <div className="flex items-center space-x-2 p-2 bg-blue-200 dark:bg-gray-800 rounded-md">
+                    <Icon name={UserIcon} size={18} className="text-blue-700 dark:text-gray-100" />
+                    <span className="text-xs truncate" title={user.email}>{user.email}</span>
+                </div>
+            )}
           <button onClick={onLogout} className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-200 dark:bg-red-900 dark:hover:bg-red-700 mt-2">
             <Icon name={RefreshCw} size={18} /> Cerrar sesión
           </button>
@@ -698,10 +704,75 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
             >
               <Icon name={Calendar} size={20} className="mr-2"/> Ver Calendario
             </button>
-             <button 
+            <div className="relative">
+              <button 
+                onClick={() => document.getElementById('pdfDatePicker')?.showPicker()}
+                className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+              >
+                <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
+              </button>
+              <input
+                id="pdfDatePicker"
+                type="date"
+                className="absolute opacity-0 -z-10"
+                onChange={(e) => {
+                  const selectedDate = e.target.value;
+                  const filteredTickets = tickets.filter(t => t.fechaCoordinacion === selectedDate)
+                    .sort((a, b) => a.horaCoordinacion.localeCompare(b.horaCoordinacion));
+
+                  if (filteredTickets.length === 0) {
+                    alert('No hay citas programadas para esta fecha');
+                    return;
+                  }
+
+                  const content = document.createElement('div');
+                  content.innerHTML = `
+                    <div style="padding: 20px; font-family: Arial, sans-serif;">
+                      <h1 style="text-align: center; margin-bottom: 20px;">Rutas del Día ${formatDate(selectedDate)}</h1>
+                      <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                          <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Hora</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cliente</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Dirección</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Servicio</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${filteredTickets.map(ticket => `
+                            <tr>
+                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.horaCoordinacion}</td>
+                              <td style="border: 1px solid #ddd; padding: 8px;">
+                                ${ticket.beneficiario.nombre}<br>
+                                <small>Tel: ${ticket.beneficiario.telefono}</small>
+                              </td>
+                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.beneficiario.direccion}</td>
+                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.tipoServicio}</td>
+                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.estado}</td>
+                            </tr>
+                          `).join('')}
+                        </tbody>
+                      </table>
+                    </div>
+                  `;
+
+                  const opt = {
+                    margin: 1,
+                    filename: `rutas-${selectedDate}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+                  };
+
+                  html2pdf().from(content).set(opt).save();
+                }}
+              />
+            </div>
+            <button 
               onClick={() => {
-                const a = document.createElement('a');
                 const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tickets, null, 2));
+                const a = document.createElement('a');
                 a.href = data;
                 a.download = `tickets_export_${new Date().toISOString().split('T')[0]}.json`;
                 a.click();
@@ -809,6 +880,104 @@ const CalendarView: React.FC<{ tickets: Ticket[]; onTicketClick: (ticket: Ticket
   );
 };
 
+const ExportToPdfButton: React.FC<{ tickets: Ticket[] }> = ({ tickets }) => {
+  const [selectedDate, setSelectedDate] = useState(formatISOForInput(new Date()));
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const generatePDF = async () => {
+    const filteredTickets = tickets.filter(t => t.fechaCoordinacion === selectedDate)
+      .sort((a, b) => a.horaCoordinacion.localeCompare(b.horaCoordinacion));
+
+    if (filteredTickets.length === 0) {
+      alert('No hay citas programadas para esta fecha');
+      return;
+    }
+
+    const content = document.createElement('div');
+    content.innerHTML = `
+      <div style="padding: 20px; font-family: Arial, sans-serif;">
+        <h1 style="text-align: center; margin-bottom: 20px;">Rutas del Día ${formatDate(selectedDate)}</h1>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Hora</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cliente</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Dirección</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Servicio</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredTickets.map(ticket => `
+              <tr>
+                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.horaCoordinacion}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">
+                  ${ticket.beneficiario.nombre}<br>
+                  <small>Tel: ${ticket.beneficiario.telefono}</small>
+                </td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.beneficiario.direccion}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.tipoServicio}</td>
+                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.estado}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    const opt = {
+      margin: 1,
+      filename: `rutas-${selectedDate}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+
+    try {
+      await html2pdf().from(content).set(opt).save();
+      setShowDatePicker(false);
+    } catch (error) {
+      console.error('Error al generar el PDF:', error);
+      alert('Error al generar el PDF. Por favor, intente nuevamente.');
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowDatePicker(!showDatePicker)}
+        className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+      >
+        <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
+      </button>
+      
+      {showDatePicker && (
+        <div className="absolute z-10 mt-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full p-2 mb-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          />
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => setShowDatePicker(false)}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={generatePDF}
+              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Generar PDF
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>("dashboard");
@@ -1050,6 +1219,7 @@ const App: React.FC = () => {
         title="Confirmar Eliminación"
         message={`¿Estás seguro de que deseas eliminar este soporte? Esta acción no se puede deshacer.`}
       />
+      <ExportToPdfButton tickets={tickets} />
     </div>
   );
 };
