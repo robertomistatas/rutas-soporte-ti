@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
 import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 
@@ -286,7 +286,8 @@ const TicketForm: React.FC<{
     if (!beneficiario.nombre.trim()) newErrors.nombre = "Nombre del beneficiario es requerido.";
     if (!beneficiario.rut.trim()) newErrors.rut = "RUT del beneficiario es requerido.";
     // Basic RUT validation (Chilean format)
-    else if (!/^[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-?[0-9Kk]$/.test(beneficiario.rut.trim())) newErrors.rut = "Formato de RUT inválido.";
+    // eslint-disable-next-line no-useless-escape
+    else if (!/^[0-9]{1,2}\.?[0-9]{3}\.?[0-9]{3}-?[0-9Kk]$/.test(beneficiario.rut.trim())) newErrors.rut = "Formato de RUT inválido."; // eslint-disable-line no-useless-escape
     if (!beneficiario.telefono.trim()) newErrors.telefono = "Teléfono es requerido.";
     else if (!/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/.test(beneficiario.telefono.trim())) newErrors.telefono = "Formato de teléfono inválido.";
     if (!beneficiario.direccion.trim()) newErrors.direccion = "Dirección es requerida.";
