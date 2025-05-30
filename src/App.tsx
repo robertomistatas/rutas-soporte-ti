@@ -613,6 +613,7 @@ const TicketsListView: React.FC<{
 };
 
 const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => void; onNewTicket: () => void; isLoading: boolean }> = ({ tickets, setView, onNewTicket, isLoading }) => {
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const summary = useMemo(() => {
     const counts: Record<TicketEstado, number> = {
       "Pendiente": 0, "Coordinado": 0, "En Proceso": 0, "Completado": 0, "Reagendado": 0, "Cancelado": 0
@@ -714,75 +715,12 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
             >
               <Icon name={Calendar} size={20} className="mr-2"/> Ver Calendario
             </button>
-            <div className="relative">              <button 
-                onClick={() => {
-                  const picker = document.getElementById('pdfDatePicker') as HTMLInputElement;
-                  if (picker) {
-                    picker.click();
-                  }
-                }}
-                className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-              >
-                <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
-              </button>
-              <input
-                id="pdfDatePicker"
-                type="date"
-                className="absolute opacity-0 -z-10"
-                onChange={(e) => {
-                  const selectedDate = e.target.value;
-                  const filteredTickets = tickets.filter(t => t.fechaCoordinacion === selectedDate)
-                    .sort((a, b) => a.horaCoordinacion.localeCompare(b.horaCoordinacion));
-
-                  if (filteredTickets.length === 0) {
-                    alert('No hay citas programadas para esta fecha');
-                    return;
-                  }
-
-                  const content = document.createElement('div');
-                  content.innerHTML = `
-                    <div style="padding: 20px; font-family: Arial, sans-serif;">
-                      <h1 style="text-align: center; margin-bottom: 20px;">Rutas del Día ${formatDate(selectedDate)}</h1>
-                      <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                          <tr>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Hora</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cliente</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Dirección</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Servicio</th>
-                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          ${filteredTickets.map(ticket => `
-                            <tr>
-                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.horaCoordinacion}</td>
-                              <td style="border: 1px solid #ddd; padding: 8px;">
-                                ${ticket.beneficiario.nombre}<br>
-                                <small>Tel: ${ticket.beneficiario.telefono}</small>
-                              </td>
-                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.beneficiario.direccion}</td>
-                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.tipoServicio}</td>
-                              <td style="border: 1px solid #ddd; padding: 8px;">${ticket.estado}</td>
-                            </tr>
-                          `).join('')}
-                        </tbody>
-                      </table>
-                    </div>
-                  `;
-
-                  const opt = {
-                    margin: 1,
-                    filename: `rutas-${selectedDate}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-                  };
-
-                  html2pdf().from(content).set(opt).save();
-                }}
-              />
-            </div>
+            <button
+              onClick={() => setShowDatePicker(!showDatePicker)}
+              className="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            >
+              <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
+            </button>
             <button 
               onClick={() => {
                 const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tickets, null, 2));
@@ -796,6 +734,92 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
             >
               <Icon name={FileText} size={20} className="mr-2"/> Exportar Soportes (JSON)
             </button>
+            {showDatePicker && (
+              <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                  <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+                  <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                  <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                      <div className="sm:flex sm:items-start">
+                        <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
+                            Seleccionar Fecha para Exportar
+                          </h3>
+                          <input
+                            type="date"
+                            value={formatISOForInput(new Date())}
+                            onChange={(e) => {
+                              const selectedDate = e.target.value;
+                              const filteredTickets = tickets.filter(t => t.fechaCoordinacion === selectedDate)
+                                .sort((a, b) => a.horaCoordinacion.localeCompare(b.horaCoordinacion));
+
+                              if (filteredTickets.length === 0) {
+                                alert('No hay citas programadas para esta fecha');
+                                return;
+                              }
+
+                              const content = document.createElement('div');
+                              content.innerHTML = `
+                                <div style="padding: 20px; font-family: Arial, sans-serif;">
+                                  <h1 style="text-align: center; margin-bottom: 20px;">Rutas del Día ${formatDate(selectedDate)}</h1>
+                                  <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                      <tr>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Hora</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cliente</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Dirección</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Servicio</th>
+                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      ${filteredTickets.map(ticket => `
+                                        <tr>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.horaCoordinacion}</td>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">
+                                            ${ticket.beneficiario.nombre}<br>
+                                            <small>Tel: ${ticket.beneficiario.telefono}</small>
+                                          </td>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.beneficiario.direccion}</td>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.tipoServicio}</td>
+                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.estado}</td>
+                                        </tr>
+                                      `).join('')}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              `;
+
+                              const opt = {
+                                margin: 1,
+                                filename: `rutas-${selectedDate}.pdf`,
+                                image: { type: 'jpeg', quality: 0.98 },
+                                html2canvas: { scale: 2 },
+                                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+                              };
+
+                              html2pdf().from(content).set(opt).save();
+                              setShowDatePicker(false);
+                            }}
+                            className="w-full p-2 mb-4 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                          />
+                          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                            <button
+                              type="button"
+                              onClick={() => setShowDatePicker(false)}
+                              className="mt-3 w-full inline-flex justify-center rounded-md shadow-sm px-4 py-2 bg-gray-100 text-base font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:w-auto sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -894,104 +918,7 @@ const CalendarView: React.FC<{ tickets: Ticket[]; onTicketClick: (ticket: Ticket
   );
 };
 
-const ExportToPdfButton: React.FC<{ tickets: Ticket[] }> = ({ tickets }) => {
-  const [selectedDate, setSelectedDate] = useState(formatISOForInput(new Date()));
-  const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const generatePDF = async () => {
-    const filteredTickets = tickets.filter(t => t.fechaCoordinacion === selectedDate)
-      .sort((a, b) => a.horaCoordinacion.localeCompare(b.horaCoordinacion));
-
-    if (filteredTickets.length === 0) {
-      alert('No hay citas programadas para esta fecha');
-      return;
-    }
-
-    const content = document.createElement('div');
-    content.innerHTML = `
-      <div style="padding: 20px; font-family: Arial, sans-serif;">
-        <h1 style="text-align: center; margin-bottom: 20px;">Rutas del Día ${formatDate(selectedDate)}</h1>
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Hora</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cliente</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Dirección</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Servicio</th>
-              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${filteredTickets.map(ticket => `
-              <tr>
-                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.horaCoordinacion}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">
-                  ${ticket.beneficiario.nombre}<br>
-                  <small>Tel: ${ticket.beneficiario.telefono}</small>
-                </td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.beneficiario.direccion}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.tipoServicio}</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">${ticket.estado}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    const opt = {
-      margin: 1,
-      filename: `rutas-${selectedDate}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-    };
-
-    try {
-      await html2pdf().from(content).set(opt).save();
-      setShowDatePicker(false);
-    } catch (error) {
-      console.error('Error al generar el PDF:', error);
-      alert('Error al generar el PDF. Por favor, intente nuevamente.');
-    }
-  };
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setShowDatePicker(!showDatePicker)}
-        className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-      >
-        <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
-      </button>
-      
-      {showDatePicker && (
-        <div className="absolute z-10 mt-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full">
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-full p-2 mb-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          />
-          <div className="flex justify-end space-x-2">
-            <button
-              onClick={() => setShowDatePicker(false)}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={generatePDF}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Generar PDF
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+// Component removed
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>("dashboard");
@@ -1211,8 +1138,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-screen bg-blue-50 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>      <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} user={user} onLogout={handleLogout} />
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className={`flex h-screen bg-blue-50 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>      <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} user={user} onLogout={handleLogout} />      <div className="flex-1 flex flex-col min-w-0">
         <Header toggleSidebar={toggleSidebar} currentViewTitle={viewTitles[currentView] || ''} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
         <main className="flex-1 overflow-y-auto">
           {renderView()}
@@ -1232,7 +1158,6 @@ const App: React.FC = () => {
         title="Confirmar Eliminación"
         message={`¿Estás seguro de que deseas eliminar este soporte? Esta acción no se puede deshacer.`}
       />
-      <ExportToPdfButton tickets={tickets} />
     </div>
   );
 };
