@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import * as React from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, User, signInWithCustomToken } from 'firebase/auth';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, onSnapshot, Timestamp, setDoc } from 'firebase/firestore';
-import { ChevronDown, ChevronRight, Plus, Calendar, List, LayoutDashboard, Users, MapPin, Edit2, Trash2, Search, Filter, X, LogOut, Sun, Moon, Menu, User as UserIcon, Clock, Settings, FileText, AlertCircle, CheckCircle, RefreshCw, ExternalLink } from 'lucide-react';
+import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
+import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 
-// Firebase Configuration (Replace with your actual config)
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-  apiKey: "AIzaSyCLPMbp7up5coX90wS1_GWQKw_j23d5_UE", // Replace if not using __firebase_config
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCLPMbp7up5coX90wS1_GWQKw_j23d5_UE",
   authDomain: "rutas-soporte-ti.firebaseapp.com",
   projectId: "rutas-soporte-ti",
   storageBucket: "rutas-soporte-ti.firebasestorage.app",
@@ -19,8 +20,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// App ID and User ID
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-amaia-app';
+// App ID
+const appId = 'default-amaia-app';
 
 // Types
 interface Beneficiario {
@@ -810,15 +811,6 @@ const CalendarView: React.FC<{ tickets: Ticket[]; onTicketClick: (ticket: Ticket
           </div>
         ))}
       </div>
-      <style jsx global>{`
-        .text-xxs-yellow-800 { color: #713f12; } /* yellow-800 */
-        .text-xxs-blue-800 { color: #1e40af; } /* blue-800 */
-        .text-xxs-indigo-800 { color: #3730a3; } /* indigo-800 */
-        .text-xxs-green-800 { color: #166534; } /* green-800 */
-        .text-xxs-purple-800 { color: #581c87; } /* purple-800 */
-        .text-xxs-red-800 { color: #991b1b; } /* red-800 */
-        .text-xxs-gray-800 { color: #1f2937; } /* gray-800 */
-      `}</style>
     </div>
   );
 };
@@ -837,7 +829,6 @@ const App: React.FC = () => {
     }
     return false;
   });
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [ticketIdToDelete, setTicketIdToDelete] = useState<string | null>(null);
@@ -855,13 +846,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const attemptSignIn = async () => {
       try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-          console.log("Signed in with custom token.");
-        } else {
-          await signInAnonymously(auth);
-          console.log("Signed in anonymously.");
-        }
+        // Elimina el uso de __initial_auth_token para evitar errores de compilación en producción
+        await signInAnonymously(auth);
+        console.log("Signed in anonymously.");
       } catch (error) {
         console.error("Firebase sign-in error:", error);
         // Fallback or error display if needed
@@ -871,11 +858,9 @@ const App: React.FC = () => {
     attemptSignIn();
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      const currentUid = user?.uid || crypto.randomUUID();
-      setUserId(currentUid);
+      setUserId(user?.uid || null);
       setAuthReady(true); 
-      console.log("Auth state changed. User ID:", currentUid);
+      console.log("Auth state changed. User ID:", user?.uid);
     });
     return () => unsubscribeAuth();
   }, []);
@@ -1032,25 +1017,21 @@ const App: React.FC = () => {
 
   const renderView = () => {
     if (!authReady) {
-        return (
-            <div className="flex flex-col justify-center items-center h-full p-4 text-center">
-                <Icon name={Settings} size={48} className="text-blue-500 mb-4 animate-pulse" />
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">Inicializando sistema AMAIA...</h2>
-                <p className="text-gray-500 dark:text-gray-400">Estableciendo conexión segura.</p>
-            </div>
-        );
+      return (
+        <div className="flex-1 flex items-center justify-center">
+          <Icon name={RefreshCw} size={32} className="animate-spin text-blue-600 dark:text-blue-400" />
+          <p className="ml-2 text-gray-600 dark:text-gray-300">Autenticando...</p>
+        </div>
+      );
     }
     if (!userId && authReady) {
-        return (
-            <div className="flex flex-col justify-center items-center h-full p-4 text-center">
-                <Icon name={AlertCircle} size={48} className="text-red-500 mb-4" />
-                <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">Error de Autenticación</h2>
-                <p className="text-gray-500 dark:text-gray-400">No se pudo obtener la identificación de usuario. Por favor, recargue la página o contacte a soporte.</p>
-                 <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">App ID: {appId}</p>
-            </div>
-        );
+      return (
+        <div className="flex-1 flex items-center justify-center">
+          <Icon name={AlertCircle} size={32} className="text-red-600 dark:text-red-400" />
+          <p className="ml-2 text-gray-600 dark:text-gray-300">No se pudo identificar al usuario.</p>
+        </div>
+      );
     }
-
     switch (currentView) {
       case "dashboard":
         return <DashboardView tickets={tickets} setView={setCurrentView} onNewTicket={handleNewTicket} isLoading={isLoading} />;
@@ -1066,19 +1047,12 @@ const App: React.FC = () => {
   return (
     <div className={`flex h-screen bg-gray-100 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>
       <Sidebar currentView={currentView} setView={setCurrentView} isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} userId={userId} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header toggleSidebar={toggleSidebar} currentViewTitle={viewTitles[currentView] || "Sistema AMAIA"} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header toggleSidebar={toggleSidebar} currentViewTitle={viewTitles[currentView] || ''} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <main className="flex-1 overflow-y-auto">
           {renderView()}
         </main>
       </div>
-      <button
-        onClick={handleNewTicket}
-        title="Crear Nuevo Ticket"
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 z-30"
-      >
-        <Icon name={Plus} size={24} />
-      </button>
       <TicketForm
         isOpen={isTicketFormOpen}
         onClose={() => setIsTicketFormOpen(false)}
