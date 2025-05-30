@@ -4,8 +4,10 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
 import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
-import LoginPage from './LoginPage';
 import html2pdf from 'html2pdf.js';
+import LoginPage from './LoginPage';
+
+declare module 'html2pdf.js';
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -37,8 +39,8 @@ interface Ticket {
   id: string;
   beneficiario: Beneficiario;
   tipoServicio: string;
-  fechaCoordinacion: string; // Store as ISO string or YYYY-MM-DD
-  horaCoordinacion: string; // e.g., "10:00"
+  fechaCoordinacion: string;
+  horaCoordinacion: string;
   tecnicoAsignado: string;
   estado: string;
   descripcion: string;
@@ -50,6 +52,14 @@ interface Ticket {
 }
 
 type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "Reagendado" | "Cancelado";
+
+interface DashboardViewProps {
+  tickets: Ticket[];
+  setView: (view: string) => void;
+  onNewTicket: () => void;
+  isLoading: boolean;
+}
+
 const TICKET_ESTADOS: TicketEstado[] = ["Pendiente", "Coordinado", "En Proceso", "Completado", "Reagendado", "Cancelado"];
 const TICKET_TIPOS = [
   "Instalación GPS Colgante",
