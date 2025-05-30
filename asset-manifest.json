@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/rutas-soporte-ti/static/css/main.4670ff45.css",
+    "main.js": "/rutas-soporte-ti/static/js/main.1b5b1543.js",
+    "index.html": "/rutas-soporte-ti/index.html",
+    "main.4670ff45.css.map": "/rutas-soporte-ti/static/css/main.4670ff45.css.map",
+    "main.1b5b1543.js.map": "/rutas-soporte-ti/static/js/main.1b5b1543.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.4670ff45.css",
+    "static/js/main.1b5b1543.js"
+  ]
+}
