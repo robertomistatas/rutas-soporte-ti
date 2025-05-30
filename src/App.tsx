@@ -709,17 +709,17 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
             >
               <Icon name={Plus} size={20} className="mr-2"/> Crear Nuevo Soporte
             </button>
-            <button 
-              onClick={() => setView('calendar')}
-              className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              <Icon name={Calendar} size={20} className="mr-2"/> Ver Calendario
-            </button>
             <button
               onClick={() => setShowDatePicker(!showDatePicker)}
               className="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
             >
               <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
+            </button>
+            <button 
+              onClick={() => setView('calendar')}
+              className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              <Icon name={Calendar} size={20} className="mr-2"/> Ver Calendario
             </button>
             <button 
               onClick={() => {
@@ -743,74 +743,84 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
                     <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                       <div className="sm:flex sm:items-start">
                         <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
+                          <h3 className="text-lg leading-6 font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                            <Icon name={Calendar} size={20} className="mr-2"/>
                             Seleccionar Fecha para Exportar
                           </h3>
-                          <input
-                            type="date"
-                            value={formatISOForInput(new Date())}
-                            onChange={(e) => {
-                              const selectedDate = e.target.value;
-                              const filteredTickets = tickets.filter(t => t.fechaCoordinacion === selectedDate)
-                                .sort((a, b) => a.horaCoordinacion.localeCompare(b.horaCoordinacion));
+                          <div className="space-y-4">
+                            <input
+                              type="date"
+                              value={formatISOForInput(new Date())}
+                              onChange={(e) => {
+                                const selectedDate = e.target.value;
+                                const filteredTickets = tickets.filter(t => t.fechaCoordinacion === selectedDate)
+                                  .sort((a, b) => a.horaCoordinacion.localeCompare(b.horaCoordinacion));
 
-                              if (filteredTickets.length === 0) {
-                                alert('No hay citas programadas para esta fecha');
-                                return;
-                              }
+                                if (filteredTickets.length === 0) {
+                                  alert('No hay citas programadas para esta fecha');
+                                  return;
+                                }
 
-                              const content = document.createElement('div');
-                              content.innerHTML = `
-                                <div style="padding: 20px; font-family: Arial, sans-serif;">
-                                  <h1 style="text-align: center; margin-bottom: 20px;">Rutas del Día ${formatDate(selectedDate)}</h1>
-                                  <table style="width: 100%; border-collapse: collapse;">
-                                    <thead>
-                                      <tr>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Hora</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cliente</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Dirección</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Servicio</th>
-                                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Estado</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      ${filteredTickets.map(ticket => `
-                                        <tr>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.horaCoordinacion}</td>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">
-                                            ${ticket.beneficiario.nombre}<br>
-                                            <small>Tel: ${ticket.beneficiario.telefono}</small>
-                                          </td>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.beneficiario.direccion}</td>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.tipoServicio}</td>
-                                          <td style="border: 1px solid #ddd; padding: 8px;">${ticket.estado}</td>
+                                const content = document.createElement('div');
+                                content.innerHTML = `
+                                  <div style="padding: 20px; font-family: Arial, sans-serif;">
+                                    <h1 style="text-align: center; margin-bottom: 20px;">Rutas del Día ${formatDate(selectedDate)}</h1>
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                      <thead>
+                                        <tr style="background-color: #f3f4f6;">
+                                          <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Hora</th>
+                                          <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Cliente</th>
+                                          <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Dirección</th>
+                                          <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Servicio</th>
+                                          <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Estado</th>
                                         </tr>
-                                      `).join('')}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              `;
+                                      </thead>
+                                      <tbody>
+                                        ${filteredTickets.map(ticket => `
+                                          <tr>
+                                            <td style="border: 1px solid #ddd; padding: 12px;">${ticket.horaCoordinacion}</td>
+                                            <td style="border: 1px solid #ddd; padding: 12px;">
+                                              ${ticket.beneficiario.nombre}<br>
+                                              <small style="color: #666;">Tel: ${ticket.beneficiario.telefono}</small>
+                                            </td>
+                                            <td style="border: 1px solid #ddd; padding: 12px;">${ticket.beneficiario.direccion}</td>
+                                            <td style="border: 1px solid #ddd; padding: 12px;">${ticket.tipoServicio}</td>
+                                            <td style="border: 1px solid #ddd; padding: 12px;">
+                                              <span style="padding: 4px 8px; border-radius: 12px; font-size: 12px; background-color: ${ticket.estado === 'Completado' ? '#dcfce7' : '#fee2e2'}; color: ${ticket.estado === 'Completado' ? '#166534' : '#991b1b'};">
+                                                ${ticket.estado}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        `).join('')}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                `;
 
-                              const opt = {
-                                margin: 1,
-                                filename: `rutas-${selectedDate}.pdf`,
-                                image: { type: 'jpeg', quality: 0.98 },
-                                html2canvas: { scale: 2 },
-                                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-                              };
+                                const opt = {
+                                  margin: 1,
+                                  filename: `rutas-${selectedDate}.pdf`,
+                                  image: { type: 'jpeg', quality: 0.98 },
+                                  html2canvas: { scale: 2 },
+                                  jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+                                };
 
-                              html2pdf().from(content).set(opt).save();
-                              setShowDatePicker(false);
-                            }}
-                            className="w-full p-2 mb-4 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                          />
-                          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                                html2pdf().from(content).set(opt).save();
+                                setShowDatePicker(false);
+                              }}
+                              className="w-full p-3 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              Seleccione una fecha para exportar las rutas programadas para ese día. El PDF incluirá todos los soportes ordenados por hora.
+                            </p>
+                          </div>
+                          <div className="mt-6 sm:flex sm:flex-row-reverse">
                             <button
                               type="button"
                               onClick={() => setShowDatePicker(false)}
-                              className="mt-3 w-full inline-flex justify-center rounded-md shadow-sm px-4 py-2 bg-gray-100 text-base font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:w-auto sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                              className="mt-3 w-full inline-flex justify-center rounded-md px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm border border-gray-300 dark:border-gray-600"
                             >
-                              Cancelar
+                              Cerrar
                             </button>
                           </div>
                         </div>
