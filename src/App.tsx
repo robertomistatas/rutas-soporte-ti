@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
-import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, FileText, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import LoginPage from './LoginPage';
 
 // Firebase Configuration
@@ -230,7 +230,8 @@ const Header: React.FC<{
           <Icon name={Menu} size={24} />
         </button>
         <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{currentViewTitle}</h1>
-      </div>      <div className="flex items-center space-x-4">
+      </div>
+      <div className="flex items-center space-x-4">
         <button onClick={toggleDarkMode} className="text-gray-600 dark:text-gray-300 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
           <Icon name={darkMode ? Sun : Moon} size={20} />
         </button>
@@ -617,10 +618,10 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
 
   const proximasCitas = useMemo(() => {
     const today = new Date();
-    today.setHours(0,0,0,0); // Start of today
+    today.setHours(0,0,0,0);
     return tickets
       .filter(t => {
-        const fechaCoordinacion = new Date(t.fechaCoordinacion + 'T00:00:00'); // Ensure date is parsed in local timezone
+        const fechaCoordinacion = new Date(t.fechaCoordinacion + 'T00:00:00');
         return fechaCoordinacion >= today && (t.estado === "Pendiente" || t.estado === "Coordinado" || t.estado === "En Proceso");
       })
       .sort((a, b) => new Date(a.fechaCoordinacion + 'T' + a.horaCoordinacion).getTime() - new Date(b.fechaCoordinacion + 'T' + b.horaCoordinacion).getTime())
@@ -650,7 +651,6 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
   
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {TICKET_ESTADOS.map(estado => (
           <StatCard 
@@ -664,9 +664,7 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
         ))}
       </div>
 
-      {/* Main content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Próximas Citas section */}
         <div className="lg:col-span-2">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Próximas Citas ({proximasCitas.length})</h3>
@@ -699,7 +697,6 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
           </div>
         </div>
 
-        {/* Acciones Rápidas section */}
         <div className="lg:col-span-1">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Acciones Rápidas</h3>
