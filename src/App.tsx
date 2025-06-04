@@ -233,14 +233,10 @@ const Header: React.FC<{
           <Icon name={Menu} size={24} />
         </button>
         <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{currentViewTitle}</h1>
-      </div>
-      <div className="flex items-center space-x-4">
+      </div>      <div className="flex items-center space-x-4">
         <button onClick={toggleDarkMode} className="text-gray-600 dark:text-gray-300 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
           <Icon name={darkMode ? Sun : Moon} size={20} />
         </button>
-        {/* <button className="text-gray-600 dark:text-gray-300 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-          <Icon name={LogOut} size={20} />
-        </button> */}
       </div>
     </header>
   );
@@ -511,6 +507,7 @@ const TicketsListView: React.FC<{
   const [filterEstado, setFilterEstado] = useState<string>('');
   const [filterTipo, setFilterTipo] = useState<string>('');
   const [filterFecha, setFilterFecha] = useState<string>('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const filteredTickets = useMemo(() => {
     return tickets
@@ -537,11 +534,10 @@ const TicketsListView: React.FC<{
       </div>
     );
   }
-  
-  return (
+    return (
     <div className="p-4 md:p-6">
       <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
           <div>
             <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Buscar</label>
             <div className="mt-1 relative rounded-md shadow-sm">
