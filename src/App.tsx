@@ -710,18 +710,11 @@ const DashboardView: React.FC<{ tickets: Ticket[]; setView: (view: string) => vo
         <div className="lg:col-span-1">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">Acciones Rápidas</h3>
-            <div className="space-y-3">
-              <button 
+            <div className="space-y-3">              <button 
                 onClick={onNewTicket}
                 className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
                 <Icon name={Plus} size={20} className="mr-2"/> Nuevo Soporte
-              </button>
-              <button 
-                onClick={() => setShowDatePicker(true)}
-                className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Icon name={FileText} size={20} className="mr-2"/> Exportar Rutas a PDF
               </button>
               <button 
                 onClick={() => setView('calendar')}
