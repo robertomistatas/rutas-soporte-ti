@@ -290,10 +290,9 @@ const TicketForm: React.FC<{
       // Reset form for new ticket
       setBeneficiario({ nombre: '', rut: '', telefono: '', direccion: '' });
       setTipoCliente("Particular");
-      setTipoServicio(TICKET_TIPOS[0]);
-      setFechaCoordinacion(formatISOForInput(new Date()));
+      setTipoServicio(TICKET_TIPOS[0]);      setFechaCoordinacion(formatISOForInput(new Date()));
       setHoraCoordinacion('09:00');
-      setTecnicoAsignado('');
+      setTecnicoAsignado(TECNICOS[0]);
       setEstado(TICKET_ESTADOS[0]);
       setDescripcion('');
       setObservaciones('');
