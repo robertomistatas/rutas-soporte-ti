@@ -44,35 +44,6 @@ import './styles/print.css';
 // App ID
 const appId = 'default-amaia-app';
 
-// Types and Constants
-export type TipoCliente = "Particular" | "Ñuñoa" | "Peñalolen" | "El Bosque";
-export const TIPOS_CLIENTE: TipoCliente[] = ["Particular", "Ñuñoa", "Peñalolen", "El Bosque"];
-
-export interface Beneficiario {
-  nombre: string;
-  rut: string;
-  telefono: string;
-  direccion: string;
-}
-
-export interface Ticket {
-  id: string;
-  tipoCliente: TipoCliente;
-  beneficiario: Beneficiario;
-  tipoServicio: string;
-  fechaCoordinacion: string;
-  horaCoordinacion: string;
-  tecnicoAsignado: Tecnico;
-  estado: string;
-  descripcion: string;
-  observaciones: string;
-  contactoCoordinacion: string;
-  fechaCreacion: Timestamp;
-  fechaActualizacion: Timestamp;
-  historial?: Array<{ fecha: Timestamp; cambio: string; usuario?: string }>;
-  detallesCierre?: ClosureDetails;
-}
-
 const TICKET_TIPOS = [
   "Instalación APP",
   "Reinstalación APP",
