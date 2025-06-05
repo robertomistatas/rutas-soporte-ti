@@ -18,7 +18,8 @@ import {
   Copy,
   Printer,
   UserIcon,
-  X
+  X,
+  Search
 } from 'lucide-react';
 import { Timestamp, collection, query, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
