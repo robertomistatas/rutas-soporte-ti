@@ -1096,9 +1096,8 @@ const App: React.FC = () => {
       case "dashboard":
         return <DashboardView tickets={tickets} setView={setCurrentView} onNewTicket={handleNewTicket} isLoading={isLoading} />;
       case "tickets":
-        return <TicketsListView tickets={tickets} onEdit={handleEditTicket} onDelete={handleDeleteTicket} onUpdateStatus={handleUpdateTicketStatus} isLoading={isLoading} />;
-      case "calendar":
-        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} />;
+        return <TicketsListView tickets={tickets} onEdit={handleEditTicket} onDelete={handleDeleteTicket} onUpdateStatus={handleUpdateTicketStatus} isLoading={isLoading} />;      case "calendar":
+        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} isLoading={isLoading} />;
       case "print":
         return <PrintRoutesView tickets={tickets} />;
       default:
