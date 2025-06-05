@@ -1,0 +1,78 @@
+/* print.css */
+@media print {
+  /* Hide elements not needed in print */
+  header,
+  nav,
+  aside,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset background colors and text colors for printing */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure proper page breaks */
+  .print-page-break {
+    page-break-before: always;
+  }
+
+  /* Avoid breaking inside important elements */
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and adjust margins for print */
+  #printable-content {
+    margin: 0;
+    padding: 20px;
+    box-shadow: none !important;
+  }
+
+  /* Ensure dark mode colors are properly converted for print */
+  .dark\:text-gray-100,
+  .dark\:text-gray-200,
+  .dark\:text-gray-300,
+  .dark\:text-gray-400 {
+    color: #000000 !important;
+  }
+
+  /* Adjust font sizes for print */
+  h2 {
+    font-size: 24px !important;
+    margin-bottom: 20px !important;
+  }
+
+  h3 {
+    font-size: 20px !important;
+    margin-bottom: 15px !important;
+  }
+
+  h4 {
+    font-size: 16px !important;
+    margin-bottom: 10px !important;
+  }
+
+  p {
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Adjust layout for print */
+  .grid {
+    display: block !important;
+  }
+
+  /* Ensure proper margins between items */
+  .space-y-4 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  /* Remove any background colors from items */
+  .bg-white,
+  .dark\:bg-gray-800 {
+    background: transparent !important;
+  }
+}

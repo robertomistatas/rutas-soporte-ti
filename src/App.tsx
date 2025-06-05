@@ -1,42 +1,61 @@
-import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
-import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Home,
+  List,
+  Calendar,
+  AlertCircle,
+  CheckCircle,
+  Edit2,
+  Trash2,
+  MapPin,
+  Clock,
+  ChevronRight,
+  ChevronDown,
+  Menu,
+  Sun,
+  Moon,
+  RefreshCw,
+  Copy,
+  Printer,
+  UserIcon,
+  X
+} from 'lucide-react';
+import { Timestamp, collection, query, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { db, auth } from './firebase';
+import Modal from './components/Modal';
+import CloseTicketModal from './components/CloseTicketModal';
+import PrintRoutesView from './components/PrintRoutesView';
 import LoginPage from './LoginPage';
-import CloseTicketModal, { ClosureDetails } from './components/CloseTicketModal';
-
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCLPMbp7up5coX90wS1_GWQKw_j23d5_UE",
-  authDomain: "rutas-soporte-ti.firebaseapp.com",
-  projectId: "rutas-soporte-ti",
-  storageBucket: "rutas-soporte-ti.firebasestorage.app",
-  messagingSenderId: "571387968108",
-  appId: "1:571387968108:web:1cd279ff67f36e767cb649"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import {
+  Ticket,
+  Tecnico,
+  TicketEstado,
+  Beneficiario,
+  ClosureDetails,
+  TECNICOS,
+  TICKET_ESTADOS,
+  TIPOS_CLIENTE,
+  ESTADO_COLORES,
+  TipoCliente
+} from './types/types';
+import './styles/print.css';
 
 // App ID
 const appId = 'default-amaia-app';
 
 // Types and Constants
-type TipoCliente = "Particular" | "Ñuñoa" | "Peñalolen" | "El Bosque";
-const TIPOS_CLIENTE: TipoCliente[] = ["Particular", "Ñuñoa", "Peñalolen", "El Bosque"];
+export type TipoCliente = "Particular" | "Ñuñoa" | "Peñalolen" | "El Bosque";
+export const TIPOS_CLIENTE: TipoCliente[] = ["Particular", "Ñuñoa", "Peñalolen", "El Bosque"];
 
-interface Beneficiario {
+export interface Beneficiario {
   nombre: string;
   rut: string;
   telefono: string;
   direccion: string;
 }
 
-interface Ticket {
+export interface Ticket {
   id: string;
   tipoCliente: TipoCliente;
   beneficiario: Beneficiario;
@@ -53,8 +72,6 @@ interface Ticket {
   historial?: Array<{ fecha: Timestamp; cambio: string; usuario?: string }>;
   detallesCierre?: ClosureDetails;
 }
-
-type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "Reagendado" | "Cancelado";
 
 const TICKET_TIPOS = [
   "Instalación APP",
@@ -87,8 +104,8 @@ const ESTADO_COLORES: Record<TicketEstado, string> = {
   "Cancelado": "bg-red-200 text-red-800 dark:bg-red-300 dark:text-red-900",
 };
 
-const TECNICOS = ["Roberto Rojas", "Cristobal Rojas", "Gerardo Vega", "Daniel Osorio A."] as const;
-type Tecnico = typeof TECNICOS[number];
+export const TECNICOS = ["Roberto Rojas", "Cristobal Rojas", "Gerardo Vega", "Daniel Osorio A."] as const;
+export type Tecnico = typeof TECNICOS[number];
 
 const TECNICO_COLORES: Record<Tecnico, string> = {
   "Roberto Rojas": "bg-teal-200 text-teal-800 dark:bg-teal-300 dark:text-teal-900",
@@ -192,6 +209,7 @@ const Sidebar: React.FC<{
     { name: "Dashboard", icon: LayoutDashboard, view: "dashboard" },
     { name: "Soportes", icon: List, view: "tickets" },
     { name: "Calendario", icon: Calendar, view: "calendar" },
+    { name: "Impresión", icon: Printer, view: "print" },
   ];
   return (
     <>
@@ -489,6 +507,26 @@ const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; o
     }
   };
 
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(ticket.beneficiario.direccion)
+      .then(() => {
+        // Podríamos añadir una notificación aquí
+        console.log('Dirección copiada al portapapeles');
+      })
+      .catch(err => {
+        console.error('Error al copiar dirección:', err);
+      });
+  };
+
+  // Función auxiliar para copiar al portapapeles
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error('Error al copiar al portapapeles:', err);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 mb-4 hover:shadow-xl transition-shadow duration-200">
       <div className="flex justify-between items-start">
@@ -510,7 +548,17 @@ const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; o
         </div>
       </div>
       <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-        <p><Icon name={MapPin} className="inline mr-1" size={14}/> {ticket.beneficiario.direccion}</p>
+        <div className="flex items-center">
+          <Icon name={MapPin} className="inline mr-1" size={14}/>
+          <p className="flex-1">{ticket.beneficiario.direccion}</p>
+          <button
+            onClick={handleCopyAddress}
+            className="ml-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            title="Copiar dirección"
+          >
+            <Icon name={Copy} size={14} className="text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400" />
+          </button>
+        </div>
         <p><Icon name={Calendar} className="inline mr-1" size={14}/> {formatDate(ticket.fechaCoordinacion)} <Icon name={Clock} className="inline mr-1 ml-2" size={14}/> {ticket.horaCoordinacion}</p>
         {ticket.tecnicoAsignado && <p><Icon name={UserIcon} className="inline mr-1" size={14}/> Técnico: {ticket.tecnicoAsignado}</p>}
       </div>
@@ -1083,6 +1131,7 @@ const App: React.FC = () => {
     dashboard: "Dashboard Principal",
     tickets: "Lista de Soportes",
     calendar: "Calendario de Soportes",
+    print: "Impresión de Rutas",
     technicians: "Gestión de Técnicos",
     routes: "Planificación de Rutas",
   };
@@ -1105,9 +1154,11 @@ const App: React.FC = () => {
       case "tickets":
         return <TicketsListView tickets={tickets} onEdit={handleEditTicket} onDelete={handleDeleteTicket} onUpdateStatus={handleUpdateTicketStatus} isLoading={isLoading} />;
       case "calendar":
-        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} isLoading={isLoading} />;
+        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} />;
+      case "print":
+        return <PrintRoutesView tickets={tickets} />;
       default:
-        return <DashboardView tickets={tickets} setView={setCurrentView} onNewTicket={handleNewTicket} isLoading={isLoading} />;
+        return <div>Vista no implementada</div>;
     }
   };
 
