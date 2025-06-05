@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Printer, Download } from 'lucide-react';
-const html2pdf = require('html2pdf.js');
 import { Ticket, Tecnico, TECNICOS } from '../types/types';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 interface PrintRoutesViewProps {
   tickets: Ticket[];
