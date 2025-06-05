@@ -416,8 +416,7 @@ const TicketForm: React.FC<{
             {errors.horaCoordinacion && <p className={errorClass}>{errors.horaCoordinacion}</p>}
           </div>
         </div>
-        <div>
-          <label htmlFor="tecnicoAsignado" className={labelClass}>Técnico Asignado (Opcional)</label>
+        <div>          <label htmlFor="tecnicoAsignado" className={labelClass}>Técnico Asignado</label>
           <select
             name="tecnicoAsignado"
             id="tecnicoAsignado"
