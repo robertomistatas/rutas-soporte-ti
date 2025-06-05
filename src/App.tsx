@@ -57,18 +57,22 @@ interface Ticket {
 type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "Reagendado" | "Cancelado";
 
 const TICKET_TIPOS = [
-  "Instalación GPS Colgante",
+  "Instalación APP",
+  "Reinstalación APP",
   "Instalación GPS Reloj",
-  "Instalación GPS Vehículo",
-  "Mantención GPS Colgante",
-  "Mantención GPS Reloj",
-  "Mantención GPS Vehículo",
-  "Retiro GPS Colgante",
-  "Retiro GPS Reloj",
-  "Retiro GPS Vehículo",
+  "Instalación GPS Colgante",
+  "Instalación Plan Mayor",
+  "Instalación Plan Full",
+  "Mantención Preventiva",
+  "Mantención Correctiva",
   "Capacitación",
   "Visita Técnica",
-  "Otro"
+  "Retiro GPS Reloj",
+  "Retiro GPS Colgante",
+  "Retiro Plan Mayor",
+  "Retiro Plan Full",
+  "Retiro Otros",
+  "Otros"
 ];
 
 const TICKET_ESTADOS: TicketEstado[] = ["Pendiente", "Coordinado", "En Proceso", "Completado", "Reagendado", "Cancelado"];
