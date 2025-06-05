@@ -56,12 +56,20 @@ interface Ticket {
 
 type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "Reagendado" | "Cancelado";
 
-interface DashboardViewProps {
-  tickets: Ticket[];
-  setView: (view: string) => void;
-  onNewTicket: () => void;
-  isLoading: boolean;
-}
+const TICKET_TIPOS = [
+  "Instalación GPS Colgante",
+  "Instalación GPS Reloj",
+  "Instalación GPS Vehículo",
+  "Mantención GPS Colgante",
+  "Mantención GPS Reloj",
+  "Mantención GPS Vehículo",
+  "Retiro GPS Colgante",
+  "Retiro GPS Reloj",
+  "Retiro GPS Vehículo",
+  "Capacitación",
+  "Visita Técnica",
+  "Otro"
+];
 
 const TICKET_ESTADOS: TicketEstado[] = ["Pendiente", "Coordinado", "En Proceso", "Completado", "Reagendado", "Cancelado"];
 
@@ -432,7 +440,7 @@ const TicketForm: React.FC<{
   );
 };
 
-const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; onDelete: (id: string) => void; onUpdateStatus: (id: string, estado: TicketEstado) => void; }> = ({ ticket, onEdit, onDelete, onUpdateStatus }) => {
+const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; onDelete: (id: string) => void; onUpdateStatus: (id: string, estado: TicketEstado, detallesCierre?: ClosureDetails) => void; }> = ({ ticket, onEdit, onDelete, onUpdateStatus }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [tempNewStatus, setTempNewStatus] = useState<TicketEstado | null>(null);
@@ -544,7 +552,7 @@ const TicketsListView: React.FC<{
   tickets: Ticket[];
   onEdit: (ticket: Ticket) => void;
   onDelete: (id: string) => void;
-  onUpdateStatus: (id: string, estado: TicketEstado) => void;
+  onUpdateStatus: (id: string, estado: TicketEstado, detallesCierre?: ClosureDetails) => void;
   isLoading: boolean;
 }> = ({ tickets, onEdit, onDelete, onUpdateStatus, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
