@@ -56,9 +56,6 @@ interface Ticket {
 
 type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "Reagendado" | "Cancelado";
 
-type TipoCliente = "Particular" | "Ñuñoa" | "Peñalolen" | "El Bosque";
-const TIPOS_CLIENTE: TipoCliente[] = ["Particular", "Ñuñoa", "Peñalolen", "El Bosque"];
-
 interface DashboardViewProps {
   tickets: Ticket[];
   setView: (view: string) => void;
