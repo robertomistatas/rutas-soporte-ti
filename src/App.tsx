@@ -35,6 +35,7 @@ interface Beneficiario {
 
 interface Ticket {
   id: string;
+  tipoCliente: TipoCliente;
   beneficiario: Beneficiario;
   tipoServicio: string;
   fechaCoordinacion: string;
@@ -52,6 +53,9 @@ interface Ticket {
 
 type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "Reagendado" | "Cancelado";
 
+type TipoCliente = "Particular" | "Ñuñoa" | "Peñalolen" | "El Bosque";
+const TIPOS_CLIENTE: TipoCliente[] = ["Particular", "Ñuñoa", "Peñalolen", "El Bosque"];
+
 interface DashboardViewProps {
   tickets: Ticket[];
   setView: (view: string) => void;
@@ -60,19 +64,6 @@ interface DashboardViewProps {
 }
 
 const TICKET_ESTADOS: TicketEstado[] = ["Pendiente", "Coordinado", "En Proceso", "Completado", "Reagendado", "Cancelado"];
-const TICKET_TIPOS = [
-  "Instalación GPS Colgante",
-  "Instalación GPS Reloj",
-  "Instalación APP",
-  "Reinstalación APP",
-  "Instalación Plan Full",
-  "Instalación Plan Mayor",
-  "Retiro de dispositivos",
-  "Desinstalación Plan Mayor",
-  "Revisión dispositivos",
-  "Mantención completa",
-  "Otro"
-];
 
 // Update ESTADO_COLORES to use default Tailwind colors for both light and dark mode
 const ESTADO_COLORES: Record<TicketEstado, string> = {
@@ -250,6 +241,7 @@ const TicketForm: React.FC<{
   userId: string | null;
 }> = ({ isOpen, onClose, onSave, ticketToEdit, userId }) => {
   const [beneficiario, setBeneficiario] = useState<Beneficiario>({ nombre: '', rut: '', telefono: '', direccion: '' });
+  const [tipoCliente, setTipoCliente] = useState<TipoCliente>("Particular");
   const [tipoServicio, setTipoServicio] = useState<string>(TICKET_TIPOS[0]);
   const [fechaCoordinacion, setFechaCoordinacion] = useState<string>(formatISOForInput(new Date()));
   const [horaCoordinacion, setHoraCoordinacion] = useState<string>('09:00');
@@ -263,6 +255,7 @@ const TicketForm: React.FC<{
   useEffect(() => {
     if (ticketToEdit) {
       setBeneficiario(ticketToEdit.beneficiario);
+      setTipoCliente(ticketToEdit.tipoCliente);
       setTipoServicio(ticketToEdit.tipoServicio);
       setFechaCoordinacion(formatISOForInput(ticketToEdit.fechaCoordinacion));
       setHoraCoordinacion(ticketToEdit.horaCoordinacion);
@@ -274,6 +267,7 @@ const TicketForm: React.FC<{
     } else {
       // Reset form for new ticket
       setBeneficiario({ nombre: '', rut: '', telefono: '', direccion: '' });
+      setTipoCliente("Particular");
       setTipoServicio(TICKET_TIPOS[0]);
       setFechaCoordinacion(formatISOForInput(new Date()));
       setHoraCoordinacion('09:00');
@@ -310,6 +304,7 @@ const TicketForm: React.FC<{
 
     const ticketData = {
       beneficiario,
+      tipoCliente,
       tipoServicio,
       fechaCoordinacion,
       horaCoordinacion,
@@ -343,6 +338,21 @@ const TicketForm: React.FC<{
         {errors.form && <p className={errorClass}>{errors.form}</p>}
         
         <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 border-b pb-2 mb-3">Información del Beneficiario</h3>
+        
+        <div>
+          <label htmlFor="tipoCliente" className={labelClass}>Tipo de Cliente</label>
+          <select
+            id="tipoCliente"
+            value={tipoCliente}
+            onChange={(e) => setTipoCliente(e.target.value as TipoCliente)}
+            className={inputClass}
+          >
+            {TIPOS_CLIENTE.map(tipo => (
+              <option key={tipo} value={tipo}>{tipo}</option>
+            ))}
+          </select>
+        </div>
+
         <div>
           <label htmlFor="nombre" className={labelClass}>Nombre Completo</label>
           <input type="text" name="nombre" id="nombre" value={beneficiario.nombre} onChange={handleBeneficiarioChange} className={inputClass} />
@@ -426,7 +436,9 @@ const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; o
   const [showDetails, setShowDetails] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [tempNewStatus, setTempNewStatus] = useState<TicketEstado | null>(null);
+
   const estadoColorClass = ESTADO_COLORES[ticket.estado as TicketEstado] || "bg-gray-500 text-gray-800";
+
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newEstado = e.target.value as TicketEstado;
     if (newEstado === "Completado") {
@@ -452,9 +464,14 @@ const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; o
           <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400">{ticket.beneficiario.nombre}</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">{ticket.tipoServicio}</p>
         </div>
-        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${estadoColorClass}`}>
-          {ticket.estado}
-        </span>
+        <div className="flex flex-col items-end space-y-2">
+          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${estadoColorClass}`}>
+            {ticket.estado}
+          </span>
+          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+            {ticket.tipoCliente}
+          </span>
+        </div>
       </div>
       <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
         <p><Icon name={MapPin} className="inline mr-1" size={14}/> {ticket.beneficiario.direccion}</p>
