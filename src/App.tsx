@@ -5,6 +5,7 @@ import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, query, onSnapshot, Timestamp } from 'firebase/firestore';
 import { ChevronDown, ChevronRight, ChevronLeft, Plus, Calendar, List, LayoutDashboard, MapPin, Edit2, Trash2, Search, X, Sun, Moon, Menu, User as UserIcon, Clock, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import LoginPage from './LoginPage';
+import CloseTicketModal, { ClosureDetails } from './components/CloseTicketModal';
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -46,6 +47,7 @@ interface Ticket {
   fechaCreacion: Timestamp;
   fechaActualizacion: Timestamp;
   historial?: Array<{ fecha: Timestamp; cambio: string; usuario?: string }>;
+  detallesCierre?: ClosureDetails;
 }
 
 type TicketEstado = "Pendiente" | "Coordinado" | "En Proceso" | "Completado" | "Reagendado" | "Cancelado";
@@ -422,7 +424,27 @@ const TicketForm: React.FC<{
 
 const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; onDelete: (id: string) => void; onUpdateStatus: (id: string, estado: TicketEstado) => void; }> = ({ ticket, onEdit, onDelete, onUpdateStatus }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [tempNewStatus, setTempNewStatus] = useState<TicketEstado | null>(null);
   const estadoColorClass = ESTADO_COLORES[ticket.estado as TicketEstado] || "bg-gray-500 text-gray-800";
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newEstado = e.target.value as TicketEstado;
+    if (newEstado === "Cerrado") {
+      setTempNewStatus(newEstado);
+      setShowCloseModal(true);
+    } else {
+      onUpdateStatus(ticket.id, newEstado);
+    }
+  };
+
+  const handleConfirmClose = (details: ClosureDetails) => {
+    if (tempNewStatus) {
+      onUpdateStatus(ticket.id, tempNewStatus, details);
+      setShowCloseModal(false);
+      setTempNewStatus(null);
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 mb-4 hover:shadow-xl transition-shadow duration-200">
@@ -484,12 +506,20 @@ const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; o
         <select
             id={`estado-${ticket.id}`}
             value={ticket.estado}
-            onChange={(e) => onUpdateStatus(ticket.id, e.target.value as TicketEstado)}
+            onChange={handleStatusChange}
             className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm focus:ring-blue-500 focus:border-blue-500"
         >
             {TICKET_ESTADOS.map(est => <option key={est} value={est}>{est}</option>)}
         </select>
       </div>
+      <CloseTicketModal
+        isOpen={showCloseModal}
+        onClose={() => {
+          setShowCloseModal(false);
+          setTempNewStatus(null);
+        }}
+        onConfirm={handleConfirmClose}
+      />
     </div>
   );
 };
@@ -965,7 +995,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUpdateTicketStatus = async (id: string, newEstado: TicketEstado) => {
+  const handleUpdateTicketStatus = async (id: string, newEstado: TicketEstado, detallesCierre?: ClosureDetails) => {
     if (!userId) return;
     const ticketToUpdate = tickets.find(t => t.id === id);
     if (!ticketToUpdate) return;
@@ -975,7 +1005,9 @@ const App: React.FC = () => {
     const ticketDocRef = doc(db, getTicketsCollectionPath(appId), id);
     const newHistorialEntry = {
         fecha: now,
-        cambio: `Estado cambiado de ${ticketToUpdate.estado} a ${newEstado}.`,
+        cambio: detallesCierre 
+          ? `Estado cambiado de ${ticketToUpdate.estado} a ${newEstado}. Motivo: ${detallesCierre.motivo}. Solución: ${detallesCierre.solucion}`
+          : `Estado cambiado de ${ticketToUpdate.estado} a ${newEstado}.`,
         usuario: userId.substring(0,8)
     };
     const updatedHistorial = ticketToUpdate.historial ? [...ticketToUpdate.historial, newHistorialEntry] : [newHistorialEntry];
@@ -985,6 +1017,7 @@ const App: React.FC = () => {
             estado: newEstado,
             fechaActualizacion: now,
             historial: updatedHistorial,
+            ...(detallesCierre && { detallesCierre }),
         });
         console.log("Ticket status updated:", id, "to", newEstado);
     } catch (error) {
