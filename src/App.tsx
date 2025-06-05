@@ -43,7 +43,7 @@ interface Ticket {
   tipoServicio: string;
   fechaCoordinacion: string;
   horaCoordinacion: string;
-  tecnicoAsignado: string;
+  tecnicoAsignado: Tecnico;
   estado: string;
   descripcion: string;
   observaciones: string;
@@ -85,6 +85,16 @@ const ESTADO_COLORES: Record<TicketEstado, string> = {
   "Completado": "bg-green-200 text-green-800 dark:bg-green-300 dark:text-green-900",
   "Reagendado": "bg-purple-200 text-purple-800 dark:bg-purple-300 dark:text-purple-900",
   "Cancelado": "bg-red-200 text-red-800 dark:bg-red-300 dark:text-red-900",
+};
+
+const TECNICOS = ["Roberto Rojas", "Cristobal Rojas", "Gerardo Vega", "Daniel Osorio A."] as const;
+type Tecnico = typeof TECNICOS[number];
+
+const TECNICO_COLORES: Record<Tecnico, string> = {
+  "Roberto Rojas": "bg-teal-200 text-teal-800 dark:bg-teal-300 dark:text-teal-900",
+  "Cristobal Rojas": "bg-amber-200 text-amber-800 dark:bg-amber-300 dark:text-amber-900",
+  "Gerardo Vega": "bg-fuchsia-200 text-fuchsia-800 dark:bg-fuchsia-300 dark:text-fuchsia-900",
+  "Daniel Osorio A.": "bg-cyan-200 text-cyan-800 dark:bg-cyan-300 dark:text-cyan-900"
 };
 
 // Firestore collection path
@@ -257,7 +267,7 @@ const TicketForm: React.FC<{
   const [tipoServicio, setTipoServicio] = useState<string>(TICKET_TIPOS[0]);
   const [fechaCoordinacion, setFechaCoordinacion] = useState<string>(formatISOForInput(new Date()));
   const [horaCoordinacion, setHoraCoordinacion] = useState<string>('09:00');
-  const [tecnicoAsignado, setTecnicoAsignado] = useState<string>('');
+  const [tecnicoAsignado, setTecnicoAsignado] = useState<Tecnico>(TECNICOS[0]);
   const [estado, setEstado] = useState<TicketEstado>(TICKET_ESTADOS[0]);
   const [descripcion, setDescripcion] = useState<string>('');
   const [observaciones, setObservaciones] = useState<string>('');
@@ -303,8 +313,8 @@ const TicketForm: React.FC<{
     else if (!/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/.test(beneficiario.telefono.trim())) newErrors.telefono = "Formato de teléfono inválido.";
     if (!beneficiario.direccion.trim()) newErrors.direccion = "Dirección es requerida.";
     if (!fechaCoordinacion) newErrors.fechaCoordinacion = "Fecha de coordinación es requerida.";
-    if (!horaCoordinacion) newErrors.horaCoordinacion = "Hora de coordinación es requerida.";
-    if (!descripcion.trim()) newErrors.descripcion = "Descripción del servicio es requerida.";
+    if (!horaCoordinacion) newErrors.horaCoordinacion = "Hora de coordinación es requerida.";    if (!descripcion.trim()) newErrors.descripcion = "Descripción del servicio es requerida.";
+    if (!tecnicoAsignado) newErrors.tecnicoAsignado = "Técnico asignado es requerido.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -409,7 +419,19 @@ const TicketForm: React.FC<{
         </div>
         <div>
           <label htmlFor="tecnicoAsignado" className={labelClass}>Técnico Asignado (Opcional)</label>
-          <input type="text" name="tecnicoAsignado" id="tecnicoAsignado" value={tecnicoAsignado} onChange={(e) => setTecnicoAsignado(e.target.value)} className={inputClass} />
+          <select
+            name="tecnicoAsignado"
+            id="tecnicoAsignado"
+            value={tecnicoAsignado}
+            onChange={(e) => setTecnicoAsignado(e.target.value as Tecnico)}
+            className={inputClass}
+            required
+          >
+            {TECNICOS.map(tecnico => (
+              <option key={tecnico} value={tecnico}>{tecnico}</option>
+            ))}
+          </select>
+          {errors.tecnicoAsignado && <p className={errorClass}>{errors.tecnicoAsignado}</p>}
         </div>
         <div>
           <label htmlFor="estado" className={labelClass}>Estado</label>
@@ -476,13 +498,17 @@ const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; o
           <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400">{ticket.beneficiario.nombre}</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">{ticket.tipoServicio}</p>
         </div>
-        <div className="flex flex-col items-end space-y-2">
+        <div className="flex flex-col items-end space-y-2">        <div className="flex flex-col space-y-1">
           <span className={`px-3 py-1 text-xs font-semibold rounded-full ${estadoColorClass}`}>
             {ticket.estado}
           </span>
           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
             {ticket.tipoCliente}
           </span>
+          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${TECNICO_COLORES[ticket.tecnicoAsignado]}`}>
+            {ticket.tecnicoAsignado}
+          </span>
+        </div>
         </div>
       </div>
       <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
