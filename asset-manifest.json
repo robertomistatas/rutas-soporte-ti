@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/rutas-soporte-ti/static/css/main.bfa743fb.css",
-    "main.js": "/rutas-soporte-ti/static/js/main.00ad17e8.js",
+    "main.js": "/rutas-soporte-ti/static/js/main.72879a7a.js",
     "index.html": "/rutas-soporte-ti/index.html",
     "main.bfa743fb.css.map": "/rutas-soporte-ti/static/css/main.bfa743fb.css.map",
-    "main.00ad17e8.js.map": "/rutas-soporte-ti/static/js/main.00ad17e8.js.map"
+    "main.72879a7a.js.map": "/rutas-soporte-ti/static/js/main.72879a7a.js.map"
   },
   "entrypoints": [
     "static/css/main.bfa743fb.css",
-    "static/js/main.00ad17e8.js"
+    "static/js/main.72879a7a.js"
   ]
 }
