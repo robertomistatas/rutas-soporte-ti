@@ -29,10 +29,10 @@ const CloseTicketModal: React.FC<CloseTicketModalProps> = ({ isOpen, onClose, on
   const labelClass = "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Detalles de Cierre">
+    <Modal isOpen={isOpen} onClose={onClose} title="Detalles de Completación">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="motivo" className={labelClass}>Motivo de Cierre</label>
+          <label htmlFor="motivo" className={labelClass}>Motivo de Completación</label>
           <input
             id="motivo"
             type="text"
@@ -75,7 +75,7 @@ const CloseTicketModal: React.FC<CloseTicketModalProps> = ({ isOpen, onClose, on
             type="submit"
             className="px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
           >
-            Confirmar Cierre
+            Confirmar Completación
           </button>
         </div>
       </form>

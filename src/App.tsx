@@ -427,10 +427,9 @@ const TicketCard: React.FC<{ ticket: Ticket; onEdit: (ticket: Ticket) => void; o
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [tempNewStatus, setTempNewStatus] = useState<TicketEstado | null>(null);
   const estadoColorClass = ESTADO_COLORES[ticket.estado as TicketEstado] || "bg-gray-500 text-gray-800";
-
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newEstado = e.target.value as TicketEstado;
-    if (newEstado === "Cerrado") {
+    if (newEstado === "Completado") {
       setTempNewStatus(newEstado);
       setShowCloseModal(true);
     } else {
