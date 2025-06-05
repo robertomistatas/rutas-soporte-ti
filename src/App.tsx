@@ -147,10 +147,10 @@ const Sidebar: React.FC<{
   onLogout: () => void;
 }> = ({ currentView, setView, isSidebarOpen, toggleSidebar, userId, user, onLogout }) => {
   const navItems = [
-    { name: "Dashboard", icon: LayoutDashboard, view: "dashboard" },
+    { name: "Dashboard", icon: Home, view: "dashboard" },
     { name: "Soportes", icon: List, view: "tickets" },
     { name: "Calendario", icon: Calendar, view: "calendar" },
-    { name: "Impresión", icon: Printer, view: "print" },
+    { name: "Impresión", icon: Printer, view: "print" }
   ];
   return (
     <>
