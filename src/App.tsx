@@ -25,7 +25,10 @@ const db = getFirestore(app);
 // App ID
 const appId = 'default-amaia-app';
 
-// Types
+// Types and Constants
+type TipoCliente = "Particular" | "Ñuñoa" | "Peñalolen" | "El Bosque";
+const TIPOS_CLIENTE: TipoCliente[] = ["Particular", "Ñuñoa", "Peñalolen", "El Bosque"];
+
 interface Beneficiario {
   nombre: string;
   rut: string;
