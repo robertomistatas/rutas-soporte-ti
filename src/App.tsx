@@ -44,6 +44,7 @@ import './styles/print.css';
 // App ID
 const appId = 'default-amaia-app';
 
+// Lista de tipos de servicio
 const TICKET_TIPOS = [
   "Instalación APP",
   "Reinstalación APP",
@@ -58,25 +59,9 @@ const TICKET_TIPOS = [
   "Retiro GPS Reloj",
   "Retiro GPS Colgante",
   "Retiro Plan Mayor",
-  "Retiro Plan Full",
-  "Retiro Otros",
+  "Retiro Plan Full",  "Retiro Otros",
   "Otros"
 ];
-
-const TICKET_ESTADOS: TicketEstado[] = ["Pendiente", "Coordinado", "En Proceso", "Completado", "Reagendado", "Cancelado"];
-
-// Update ESTADO_COLORES to use default Tailwind colors for both light and dark mode
-const ESTADO_COLORES: Record<TicketEstado, string> = {
-  "Pendiente": "bg-yellow-200 text-yellow-800 dark:bg-yellow-300 dark:text-yellow-900",
-  "Coordinado": "bg-blue-200 text-blue-800 dark:bg-blue-300 dark:text-blue-900",
-  "En Proceso": "bg-indigo-200 text-indigo-800 dark:bg-indigo-300 dark:text-indigo-900",
-  "Completado": "bg-green-200 text-green-800 dark:bg-green-300 dark:text-green-900",
-  "Reagendado": "bg-purple-200 text-purple-800 dark:bg-purple-300 dark:text-purple-900",
-  "Cancelado": "bg-red-200 text-red-800 dark:bg-red-300 dark:text-red-900",
-};
-
-export const TECNICOS = ["Roberto Rojas", "Cristobal Rojas", "Gerardo Vega", "Daniel Osorio A."] as const;
-export type Tecnico = typeof TECNICOS[number];
 
 const TECNICO_COLORES: Record<Tecnico, string> = {
   "Roberto Rojas": "bg-teal-200 text-teal-800 dark:bg-teal-300 dark:text-teal-900",
