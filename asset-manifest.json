@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/rutas-soporte-ti/static/css/main.51ca62ca.css",
-    "main.js": "/rutas-soporte-ti/static/js/main.63c8f4a9.js",
+    "main.js": "/rutas-soporte-ti/static/js/main.31fcf016.js",
     "static/js/977.064592ce.chunk.js": "/rutas-soporte-ti/static/js/977.064592ce.chunk.js",
     "static/js/455.7875e467.chunk.js": "/rutas-soporte-ti/static/js/455.7875e467.chunk.js",
     "index.html": "/rutas-soporte-ti/index.html",
     "main.51ca62ca.css.map": "/rutas-soporte-ti/static/css/main.51ca62ca.css.map",
-    "main.63c8f4a9.js.map": "/rutas-soporte-ti/static/js/main.63c8f4a9.js.map",
+    "main.31fcf016.js.map": "/rutas-soporte-ti/static/js/main.31fcf016.js.map",
     "977.064592ce.chunk.js.map": "/rutas-soporte-ti/static/js/977.064592ce.chunk.js.map",
     "455.7875e467.chunk.js.map": "/rutas-soporte-ti/static/js/455.7875e467.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.51ca62ca.css",
-    "static/js/main.63c8f4a9.js"
+    "static/js/main.31fcf016.js"
   ]
 }
