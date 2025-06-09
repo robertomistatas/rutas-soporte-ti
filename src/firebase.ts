@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  apiKey: "AIzaSyD_xYtEApl6F0wVO1_o1dtz3GJX_uU4ewI",
   authDomain: "rutas-soporte-ti.firebaseapp.com",
   projectId: "rutas-soporte-ti",
   storageBucket: "rutas-soporte-ti.appspot.com",
