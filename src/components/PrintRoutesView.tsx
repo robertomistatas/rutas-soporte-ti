@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Printer, Download } from 'lucide-react';
+import { Printer, Download, MapPin } from 'lucide-react';
 import { Ticket, Tecnico, TECNICOS } from '../types/types';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 interface PrintRoutesViewProps {
   tickets: Ticket[];
@@ -21,17 +21,79 @@ const PrintRoutesView: React.FC<PrintRoutesViewProps> = ({ tickets }) => {
     window.print();
   };
 
-  const handleExportPDF = () => {
-    const content = document.getElementById('printable-content');
-    if (!content) return;    const opt = {
-      margin: [10, 10, 10, 10] as [number, number, number, number],
-      filename: `rutas-${selectedTechnician}-${selectedDate}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+  const getGoogleMapsUrl = (direccion: string) => {
+    // Aseguramos que la dirección incluya Chile para mejor precisión
+    const direccionCompleta = `${direccion}, Chile`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionCompleta)}`;
+  };  const handleExportPDF = () => {
+    try {
+      console.log('Iniciando generación de PDF...');
+      // Crear nueva instancia de jsPDF
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-    html2pdf().set(opt).from(content).save();
+      // Configurar fuentes
+      doc.setFont('helvetica');
+      
+      // Configurar el título
+      doc.setFontSize(16);
+      doc.text(`Ruta del día: ${new Date(selectedDate).toLocaleDateString()}`, 15, 20);
+      doc.setFontSize(12);
+      doc.text(`Técnico: ${selectedTechnician}`, 15, 30);
+
+      // Preparar los datos para la tabla
+      const tableData = filteredTickets.map((ticket, index) => [
+        (index + 1).toString(),
+        ticket.beneficiario.nombre,
+        ticket.horaCoordinacion,
+        ticket.beneficiario.telefono,
+        ticket.beneficiario.direccion,
+        ticket.tipoServicio
+      ]);      console.log('Datos de la tabla:', tableData);
+      console.log('Intentando crear tabla...');      autoTable(doc, {
+        startY: 40,
+        head: [['#', 'Beneficiario', 'Hora', 'Teléfono', 'Dirección', 'Tipo de Soporte']],
+        body: tableData,
+        theme: 'grid',
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          font: 'helvetica',
+          lineColor: [80, 80, 80],
+          lineWidth: 0.1,
+        },
+        columnStyles: {
+          0: { cellWidth: 8 },
+          1: { cellWidth: 35 },
+          2: { cellWidth: 20 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 60 },
+          5: { cellWidth: 35 }
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontSize: 10,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        bodyStyles: {
+          halign: 'left'
+        }
+      });
+
+      // Guardar el PDF
+      doc.save(`rutas-${selectedTechnician}-${selectedDate}.pdf`);    } catch (error) {
+      console.error('Error al generar el PDF:', error);
+      if (error instanceof Error) {
+        console.error('Detalles del error:', error.message);
+        console.error('Stack trace:', error.stack);
+      }
+      alert('Ocurrió un error al generar el PDF. Por favor, revise la consola del navegador para más detalles.');
+    }
   };
 
   return (
@@ -122,9 +184,20 @@ const PrintRoutesView: React.FC<PrintRoutesViewProps> = ({ tickets }) => {
                         <p className="text-gray-600 dark:text-gray-400">
                           <strong>Teléfono:</strong> {ticket.beneficiario.telefono}
                         </p>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          <strong>Dirección:</strong> {ticket.beneficiario.direccion}
-                        </p>
+                        <div className="flex items-center">
+                          <p className="text-gray-600 dark:text-gray-400 flex-1">
+                            <strong>Dirección:</strong> {ticket.beneficiario.direccion}
+                          </p>
+                          <a
+                            href={getGoogleMapsUrl(ticket.beneficiario.direccion)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-2 p-2 text-blue-600 hover:text-blue-800 print:hidden"
+                            title="Ver en Google Maps"
+                          >
+                            <MapPin size={20} />
+                          </a>
+                        </div>
                         <p className="text-gray-600 dark:text-gray-400">
                           <strong>Tipo de Soporte:</strong> {ticket.tipoServicio}
                         </p>
