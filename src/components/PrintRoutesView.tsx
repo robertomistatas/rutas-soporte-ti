@@ -37,10 +37,9 @@ const PrintRoutesView: React.FC<PrintRoutesViewProps> = ({ tickets }) => {
 
       // Configurar fuentes
       doc.setFont('helvetica');
-      
-      // Configurar el título
+        // Configurar el título
       doc.setFontSize(16);
-      doc.text(`Ruta del día: ${new Date(selectedDate).toLocaleDateString()}`, 15, 20);
+      doc.text(`Ruta del día: ${selectedDate}`, 15, 20);
       doc.setFontSize(12);
       doc.text(`Técnico: ${selectedTechnician}`, 15, 30);
 
@@ -153,9 +152,8 @@ const PrintRoutesView: React.FC<PrintRoutesViewProps> = ({ tickets }) => {
       <div id="printable-content" className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 print:shadow-none print:p-0">
         {selectedDate && (
           <>
-            <div className="print:mb-6">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-                Ruta del día: {new Date(selectedDate).toLocaleDateString()}
+            <div className="print:mb-6">              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                Ruta del día: {selectedDate}
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
                 Técnico: {selectedTechnician}
