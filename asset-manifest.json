@@ -1,19 +1,19 @@
 {
   "files": {
     "main.css": "/rutas-soporte-ti/static/css/main.1777c12e.css",
-    "main.js": "/rutas-soporte-ti/static/js/main.ec1d239c.js",
+    "main.js": "/rutas-soporte-ti/static/js/main.b858b5c2.js",
     "static/js/239.a7bb19ff.chunk.js": "/rutas-soporte-ti/static/js/239.a7bb19ff.chunk.js",
     "static/js/977.064592ce.chunk.js": "/rutas-soporte-ti/static/js/977.064592ce.chunk.js",
     "static/js/455.7875e467.chunk.js": "/rutas-soporte-ti/static/js/455.7875e467.chunk.js",
     "index.html": "/rutas-soporte-ti/index.html",
     "main.1777c12e.css.map": "/rutas-soporte-ti/static/css/main.1777c12e.css.map",
-    "main.ec1d239c.js.map": "/rutas-soporte-ti/static/js/main.ec1d239c.js.map",
+    "main.b858b5c2.js.map": "/rutas-soporte-ti/static/js/main.b858b5c2.js.map",
     "239.a7bb19ff.chunk.js.map": "/rutas-soporte-ti/static/js/239.a7bb19ff.chunk.js.map",
     "977.064592ce.chunk.js.map": "/rutas-soporte-ti/static/js/977.064592ce.chunk.js.map",
     "455.7875e467.chunk.js.map": "/rutas-soporte-ti/static/js/455.7875e467.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.1777c12e.css",
-    "static/js/main.ec1d239c.js"
+    "static/js/main.b858b5c2.js"
   ]
 }
