@@ -94,10 +94,9 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
         }
       });
 
-      // Lista de beneficiarios
-      const beneficiariosData = filteredTickets.map(ticket => [
+      // Lista de beneficiarios      const beneficiariosData = filteredTickets.map(ticket => [
         ticket.beneficiario.nombre,
-        ticket.beneficiario.comuna,
+        ticket.beneficiario.comuna || (ticket.tipoCliente !== "Particular" ? ticket.tipoCliente : "No especificada"),
         ticket.tipoServicio,
         ticket.solucion || 'No registrada'
       ]);
@@ -224,9 +223,8 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
             >
               <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                 {ticket.beneficiario.nombre}
-              </h4>
-              <p className="text-gray-600 dark:text-gray-400">
-                <strong>Comuna:</strong> {ticket.beneficiario.comuna}
+              </h4>              <p className="text-gray-600 dark:text-gray-400">
+                <strong>Comuna:</strong> {ticket.beneficiario.comuna || (ticket.tipoCliente !== "Particular" ? ticket.tipoCliente : "No especificada")}
               </p>
               <p className="text-gray-600 dark:text-gray-400">
                 <strong>Tipo de Soporte:</strong> {ticket.tipoServicio}
