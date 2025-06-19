@@ -92,9 +92,8 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
         headStyles: {
           fillColor: [41, 128, 185]
         }
-      });
-
-      // Lista de beneficiarios      const beneficiariosData = filteredTickets.map(ticket => [
+      });      // Lista de beneficiarios
+      const beneficiariosData = filteredTickets.map(ticket => [
         ticket.beneficiario.nombre,
         ticket.beneficiario.comuna || (ticket.tipoCliente !== "Particular" ? ticket.tipoCliente : "No especificada"),
         ticket.tipoServicio,
