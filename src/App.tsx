@@ -21,7 +21,8 @@ import {
   UserIcon,
   X,
   Search,
-  Plus
+  Plus,
+  BarChart2
 } from 'lucide-react';
 import { Timestamp, collection, query, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -29,6 +30,7 @@ import { db, auth } from './firebase';
 import Modal from './components/Modal';
 import CloseTicketModal from './components/CloseTicketModal';
 import PrintRoutesView from './components/PrintRoutesView';
+import ReportesView from './components/ReportesView';
 import LoginPage from './LoginPage';
 import {
   Ticket,
@@ -153,6 +155,7 @@ const Sidebar: React.FC<{
     { name: "Dashboard", icon: Home, view: "dashboard" },
     { name: "Soportes", icon: List, view: "tickets" },
     { name: "Calendario", icon: Calendar, view: "calendar" },
+    { name: "Reportes", icon: BarChart2, view: "reports" },
     { name: "Impresión", icon: Printer, view: "print" }
   ];
   return (
@@ -224,7 +227,7 @@ const TicketForm: React.FC<{
   ticketToEdit?: Ticket | null;
   userId: string | null;
 }> = ({ isOpen, onClose, onSave, ticketToEdit, userId }) => {
-  const [beneficiario, setBeneficiario] = useState<Beneficiario>({ nombre: '', rut: '', telefono: '', direccion: '' });
+  const [beneficiario, setBeneficiario] = useState<Beneficiario>({ nombre: '', rut: '', telefono: '', direccion: '', comuna: '' });
   const [tipoCliente, setTipoCliente] = useState<TipoCliente>("Particular");
   const [tipoServicio, setTipoServicio] = useState<string>(TICKET_TIPOS[0]);
   const [fechaCoordinacion, setFechaCoordinacion] = useState<string>(formatISOForInput(new Date()));
@@ -250,7 +253,7 @@ const TicketForm: React.FC<{
       setContactoCoordinacion(ticketToEdit.contactoCoordinacion);
     } else {
       // Reset form for new ticket
-      setBeneficiario({ nombre: '', rut: '', telefono: '', direccion: '' });
+      setBeneficiario({ nombre: '', rut: '', telefono: '', direccion: '', comuna: '' });
       setTipoCliente("Particular");
       setTipoServicio(TICKET_TIPOS[0]);      setFechaCoordinacion(formatISOForInput(new Date()));
       setHoraCoordinacion('09:00');
@@ -1070,11 +1073,11 @@ const App: React.FC = () => {
         setIsLoading(false);
     }
   };
-  
-  const viewTitles: Record<string, string> = {
+    const viewTitles: Record<string, string> = {
     dashboard: "Dashboard Principal",
     tickets: "Lista de Soportes",
     calendar: "Calendario de Soportes",
+    reports: "Reportes y Métricas",
     print: "Impresión de Rutas",
     technicians: "Gestión de Técnicos",
     routes: "Planificación de Rutas",
@@ -1097,7 +1100,8 @@ const App: React.FC = () => {
         return <DashboardView tickets={tickets} setView={setCurrentView} onNewTicket={handleNewTicket} isLoading={isLoading} />;
       case "tickets":
         return <TicketsListView tickets={tickets} onEdit={handleEditTicket} onDelete={handleDeleteTicket} onUpdateStatus={handleUpdateTicketStatus} isLoading={isLoading} />;      case "calendar":
-        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} isLoading={isLoading} />;
+        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} isLoading={isLoading} />;      case "reports":
+        return <ReportesView tickets={tickets} />;
       case "print":
         return <PrintRoutesView tickets={tickets} />;
       default:

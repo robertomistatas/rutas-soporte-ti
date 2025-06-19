@@ -11,6 +11,7 @@ export interface Beneficiario {
   rut: string;
   telefono: string;
   direccion: string;
+  comuna: string;
 }
 
 export interface ClosureDetails {
@@ -32,9 +33,9 @@ export interface Ticket {
   observaciones: string;
   contactoCoordinacion: string;
   fechaCreacion: Timestamp;
-  fechaActualizacion: Timestamp;
-  historial?: Array<{ fecha: Timestamp; cambio: string; usuario?: string }>;
+  fechaActualizacion: Timestamp;  historial?: Array<{ fecha: Timestamp; cambio: string; usuario?: string }>;
   detallesCierre?: ClosureDetails;
+  solucion?: string;
 }
 
 export const TECNICOS = ["Roberto Rojas", "Cristobal Rojas", "Gerardo Vega", "Daniel Osorio A."] as const;
