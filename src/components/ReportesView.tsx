@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Download, ChevronDown, ChevronUp } from 'lucide-react';
-import { Ticket, TicketEstado, TICKET_ESTADOS } from '../types/types';
+import { Ticket, TicketEstado, TICKET_ESTADOS, TipoCliente, TIPOS_CLIENTE } from '../types/types';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 
@@ -14,7 +14,12 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [reportType, setReportType] = useState<ReportType>('Completado');
+  const [selectedComuna, setSelectedComuna] = useState<string>('Todas');
   const [showBeneficiaries, setShowBeneficiaries] = useState(false);
+
+  // Lista de comunas disponibles
+  const comunas = ['Todas', ...TIPOS_CLIENTE.filter(tipo => tipo !== 'Particular')];
+
   const filteredTickets = tickets.filter(ticket => {
     if (!dateFrom || !dateTo) return false;
     
@@ -24,7 +29,12 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
     toDate.setHours(23, 59, 59); // Include the entire end day
     
     const dateInRange = ticketDate >= fromDate && ticketDate <= toDate;
-    return dateInRange && ticket.estado === reportType;
+    const matchesType = ticket.estado === reportType;
+    const matchesComuna = selectedComuna === 'Todas' || 
+      ticket.tipoCliente === selectedComuna ||
+      ticket.beneficiario.comuna === selectedComuna;
+
+    return dateInRange && matchesType && matchesComuna;
   });
   const getMetrics = () => {
     if (!filteredTickets.length) return null;
@@ -66,13 +76,14 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
-      });
-
-      doc.setFont('helvetica');
+      });      doc.setFont('helvetica');
       doc.setFontSize(16);
       doc.text(`Reporte de Soportes: ${reportType}`, 15, 20);
       doc.setFontSize(12);
       doc.text(`Período: ${dateFrom} al ${dateTo}`, 15, 30);
+      if (selectedComuna !== 'Todas') {
+        doc.text(`Comuna: ${selectedComuna}`, 15, 37);
+      }
 
       // Métricas generales
       const generalMetrics = [
@@ -126,10 +137,8 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
     <div className="p-6 max-w-7xl mx-auto">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6 text-center">
         Reportes y Estadísticas
-      </h2>
-
-      {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      </h2>      {/* Filtros */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Fecha Desde
@@ -155,13 +164,28 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Tipo de Reporte
-          </label>          <select
+          </label>
+          <select
             value={reportType}
             onChange={(e) => setReportType(e.target.value as ReportType)}
             className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
           >
             {TICKET_ESTADOS.map(estado => (
               <option key={estado} value={estado}>{estado}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Comuna
+          </label>
+          <select
+            value={selectedComuna}
+            onChange={(e) => setSelectedComuna(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+          >
+            {comunas.map(comuna => (
+              <option key={comuna} value={comuna}>{comuna}</option>
             ))}
           </select>
         </div>
