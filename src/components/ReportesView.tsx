@@ -97,7 +97,7 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
         ticket.beneficiario.nombre,
         ticket.beneficiario.comuna || (ticket.tipoCliente !== "Particular" ? ticket.tipoCliente : "No especificada"),
         ticket.tipoServicio,
-        ticket.solucion || 'No registrada'
+        ticket.detallesCierre?.solucion || 'No registrada'
       ]);
 
       autoTable(doc, {          startY: (doc as any).lastAutoTable?.finalY + 10 || 150,
@@ -227,10 +227,9 @@ const ReportesView: React.FC<ReportesViewProps> = ({ tickets }) => {
               </p>
               <p className="text-gray-600 dark:text-gray-400">
                 <strong>Tipo de Soporte:</strong> {ticket.tipoServicio}
-              </p>
-              {ticket.solucion && (
+              </p>              {ticket.detallesCierre?.solucion && (
                 <p className="text-gray-600 dark:text-gray-400 mt-2 border-t pt-2 dark:border-gray-700">
-                  <strong>Solución:</strong> {ticket.solucion}
+                  <strong>Solución:</strong> {ticket.detallesCierre.solucion}
                 </p>
               )}
             </div>
