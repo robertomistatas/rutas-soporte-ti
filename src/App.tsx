@@ -239,9 +239,20 @@ const TicketForm: React.FC<{
   const [contactoCoordinacion, setContactoCoordinacion] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Actualizar comuna cuando cambia el tipo de cliente
+  useEffect(() => {
+    setBeneficiario(prev => ({
+      ...prev,
+      comuna: tipoCliente === "Particular" ? "" : tipoCliente
+    }));
+  }, [tipoCliente]);
+
   useEffect(() => {
     if (ticketToEdit) {
-      setBeneficiario(ticketToEdit.beneficiario);
+      setBeneficiario({
+        ...ticketToEdit.beneficiario,
+        comuna: ticketToEdit.tipoCliente === "Particular" ? "" : ticketToEdit.tipoCliente
+      });
       setTipoCliente(ticketToEdit.tipoCliente);
       setTipoServicio(ticketToEdit.tipoServicio);
       setFechaCoordinacion(formatISOForInput(ticketToEdit.fechaCoordinacion));
