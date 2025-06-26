@@ -31,6 +31,7 @@ import Modal from './components/Modal';
 import CloseTicketModal from './components/CloseTicketModal';
 import PrintRoutesView from './components/PrintRoutesView';
 import ReportesView from './components/ReportesView';
+import AmaiaTicketsView from './components/AmaiaTicketsView';
 import LoginPage from './LoginPage';
 import {
   Ticket,
@@ -155,6 +156,7 @@ const Sidebar: React.FC<{
     { name: "Dashboard", icon: Home, view: "dashboard" },
     { name: "Soportes", icon: List, view: "tickets" },
     { name: "Calendario", icon: Calendar, view: "calendar" },
+    { name: "Tickets Amaia", icon: AlertCircle, view: "amaia" },
     { name: "Reportes", icon: BarChart2, view: "reports" },
     { name: "Impresión", icon: Printer, view: "print" }
   ];
@@ -1088,6 +1090,7 @@ const App: React.FC = () => {
     dashboard: "Dashboard Principal",
     tickets: "Lista de Soportes",
     calendar: "Calendario de Soportes",
+    amaia: "Tickets AMAIA",
     reports: "Reportes y Métricas",
     print: "Impresión de Rutas",
     technicians: "Gestión de Técnicos",
@@ -1111,7 +1114,10 @@ const App: React.FC = () => {
         return <DashboardView tickets={tickets} setView={setCurrentView} onNewTicket={handleNewTicket} isLoading={isLoading} />;
       case "tickets":
         return <TicketsListView tickets={tickets} onEdit={handleEditTicket} onDelete={handleDeleteTicket} onUpdateStatus={handleUpdateTicketStatus} isLoading={isLoading} />;      case "calendar":
-        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} isLoading={isLoading} />;      case "reports":
+        return <CalendarView tickets={tickets} onTicketClick={handleEditTicket} isLoading={isLoading} />;      
+      case "amaia":
+        return <AmaiaTicketsView />;      
+      case "reports":
         return <ReportesView tickets={tickets} />;
       case "print":
         return <PrintRoutesView tickets={tickets} />;
