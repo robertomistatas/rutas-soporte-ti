@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, Search, Filter } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Upload, Search, Filter, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface AmaiaTicket {
@@ -12,8 +12,14 @@ interface AmaiaTicket {
   grupo: string;
 }
 
+const STORAGE_KEY = 'amaia_tickets_data';
+
 const AmaiaTicketsView: React.FC = () => {
-  const [tickets, setTickets] = useState<AmaiaTicket[]>([]);
+  const [tickets, setTickets] = useState<AmaiaTicket[]>(() => {
+    // Cargar datos del localStorage al iniciar
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    return savedData ? JSON.parse(savedData) : [];
+  });
   const [filteredTickets, setFilteredTickets] = useState<AmaiaTicket[]>([]);
   const [filters, setFilters] = useState({
     search: '',
@@ -21,6 +27,41 @@ const AmaiaTicketsView: React.FC = () => {
     comuna: '',
     grupo: ''
   });
+  const [lastUpdate, setLastUpdate] = useState<string>(() => {
+    return localStorage.getItem('amaia_tickets_last_update') || '';
+  });
+
+  // Guardar datos en localStorage cuando cambian
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+    if (tickets.length > 0) {
+      const now = new Date().toLocaleString();
+      localStorage.setItem('amaia_tickets_last_update', now);
+      setLastUpdate(now);
+    }
+  }, [tickets]);
+
+  useEffect(() => {
+    // Inicializar filtered tickets con todos los tickets al cargar
+    setFilteredTickets(tickets);
+  }, []);
+
+  // Función para limpiar datos
+  const handleClearData = useCallback(() => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.')) {
+      setTickets([]);
+      setFilteredTickets([]);
+      setFilters({
+        search: '',
+        prioridad: '',
+        comuna: '',
+        grupo: ''
+      });
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('amaia_tickets_last_update');
+      setLastUpdate('');
+    }
+  }, []);
 
   // Función para procesar el archivo Excel
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,10 +83,22 @@ const AmaiaTicketsView: React.FC = () => {
           apertura: row.apertura || '',
           comuna: row.comuna || '',
           grupo: row.grupo || ''
-        }));
+        })).filter(ticket => ticket.id && ticket.beneficiario); // Solo tickets válidos
 
+        // Actualizar el estado y localStorage
         setTickets(processedData);
         setFilteredTickets(processedData);
+        setFilters({
+          search: '',
+          prioridad: '',
+          comuna: '',
+          grupo: ''
+        });
+
+        // Limpiar el input de archivo
+        if (event.target) {
+          event.target.value = '';
+        }
       };
       reader.readAsBinaryString(file);
     }
@@ -114,22 +167,41 @@ const AmaiaTicketsView: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6 text-center">
-        Tickets Amaia
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+          Tickets Amaia
+        </h2>
+        {lastUpdate && (
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Última actualización: {lastUpdate}
+          </div>
+        )}
+      </div>
 
-      {/* Sección de carga de archivo */}
+      {/* Sección de carga de archivo y limpieza */}
       <div className="mb-8">
-        <label className="flex flex-col items-center px-4 py-6 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg shadow-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
-          <Upload size={48} className="mb-2" />
-          <span className="text-sm font-medium">Selecciona o arrastra el archivo Excel</span>
-          <input
-            type="file"
-            className="hidden"
-            accept=".xlsx,.xls"
-            onChange={handleFileUpload}
-          />
-        </label>
+        <div className="flex flex-col space-y-4">
+          <label className="flex flex-col items-center px-4 py-6 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-lg shadow-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+            <Upload size={48} className="mb-2" />
+            <span className="text-sm font-medium">Selecciona o arrastra el archivo Excel</span>
+            <input
+              type="file"
+              className="hidden"
+              accept=".xlsx,.xls"
+              onChange={handleFileUpload}
+            />
+          </label>
+          
+          {tickets.length > 0 && (
+            <button
+              onClick={handleClearData}
+              className="flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              <Trash2 size={16} className="mr-2" />
+              Limpiar Datos Actuales
+            </button>
+          )}
+        </div>
       </div>
 
       {tickets.length > 0 && (
@@ -242,6 +314,17 @@ const AmaiaTicketsView: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* Botón para limpiar datos */}
+      <div className="mt-8 text-center">
+        <button
+          onClick={handleClearData}
+          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center space-x-2 mx-auto"
+        >
+          <Trash2 size={16} />
+          <span>Eliminar Todos los Datos</span>
+        </button>
+      </div>
     </div>
   );
 };
