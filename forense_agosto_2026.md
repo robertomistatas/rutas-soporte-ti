@@ -11,14 +11,14 @@ Este documento es el punto de partida para cualquier desarrollador (o para el pr
 
 AMAIA es una SPA en React + TypeScript + Firebase para gestionar "tickets" de soporte técnico (instalaciones/mantenciones de GPS/apps para adultos mayores), con calendario, reportes en PDF y un módulo de importación de Excel.
 
-Es un primer proyecto y se nota: la lógica de negocio funciona razonablemente bien, pero hay **un hallazgo crítico de seguridad que debe resolverse antes de seguir agregando features**: cualquier persona en internet puede auto-registrarse en la app y acceder a datos personales de beneficiarios (nombre, RUT, teléfono, dirección).
+Es un primer proyecto y se nota: la lógica de negocio funciona razonablemente bien. Se detectaron 2 hallazgos críticos de seguridad el 2026-08-12 (API key expuesta en un repo público + auto-registro abierto que exponía datos personales de beneficiarios) — **ambos fueron corregidos y desplegados a producción el mismo día**, ver sección 3.
 
-| Severidad | Cantidad |
-|---|---|
-| 🔴 Crítico | 2 |
-| 🟠 Alto | 4 |
-| 🟡 Medio | 6 |
-| 🟢 Bajo / limpieza | 7 |
+| Severidad | Cantidad | Estado al 2026-08-12 |
+|---|---|---|
+| 🔴 Crítico | 2 | ✅ Resueltos |
+| 🟠 Alto | 4 | Pendientes |
+| 🟡 Medio | 6 | Pendientes |
+| 🟢 Bajo / limpieza | 7 | Pendientes |
 
 ---
 
@@ -65,23 +65,22 @@ No existe carpeta `docs/`, ni `README.md`, ni `firebase.json` / `.firebaserc` / 
 
 ---
 
-## 3. Hallazgos críticos de seguridad 🔴
+## 3. Hallazgos críticos de seguridad 🔴 — ✅ AMBOS RESUELTOS (2026-08-12)
 
-> **Actualización 2026-08-12 (tarde):** ambos hallazgos de esta sección fueron remediados a nivel de código/repo y desplegados a producción el mismo día. Quedan 2 acciones manuales pendientes de parte de Roberto (ver checklist al final de cada hallazgo) que requieren login interactivo en Firebase/Google Cloud Console y no pueden automatizarse desde aquí.
+> **Actualización final 2026-08-12:** los dos hallazgos de esta sección están completamente cerrados. Se corrigió el código, se desplegó el frontend a GitHub Pages, Roberto rotó la API key y borró la anterior en Google Cloud Console, y se desplegaron las reglas de Firestore (`firebase deploy --only firestore:rules`, confirmado por el CLI: "Deploy complete!"). Detalle de cada uno abajo.
 
-### 3.1 `.env` con credencial real, commiteado y en un repositorio **público** — ✅ código corregido, ⏳ rotación de key pendiente
+### 3.1 `.env` con credencial real, commiteado y en un repositorio **público** — ✅ RESUELTO
 - Archivo: [`.env`](.env), trackeado por git desde el commit `fd6c76b` ("chore: add environment configuration") y actualizado en `979859e`, `e5a6ba4`, `e7531fc`.
 - Contiene `REACT_APP_FIREBASE_API_KEY=AIzaSyC...` (clave real, visible en `git log -p -- .env`).
 - El `.gitignore` solo excluye `.env.local`, `.env.development.local`, etc. — **nunca excluyó `.env` a secas**, así que cada `git push` lo sube.
 - Verificado vía API de GitHub: `"private": false` → el repo es público, cualquiera puede ver el historial completo, incluidas las 3 rotaciones previas de la clave.
 - **Matiz importante:** una API key de Firebase *web* no es un secreto que dé acceso administrativo por sí sola (está pensada para ir en el bundle del cliente) — el riesgo real depende de qué tan abiertas estén las reglas de Firestore/Auth. Pero: (a) subir secretos a un repo público es mala práctica que hay que corregir igual, y (b) combinado con el hallazgo 3.2, sí hay un problema real de exposición de datos.
 - **Hecho el 2026-08-12:** `git rm --cached .env` y se agregó `.env` (a secas) al `.gitignore`. El archivo sigue existiendo en el disco local (necesario para compilar) pero ya no se sube en próximos commits.
-- **Pendiente — requiere acción manual de Roberto (login interactivo, no automatizable):**
-  1. Rotar la API key en Google Cloud Console → APIs & Services → Credentials (proyecto `rutas-soporte-ti`), y restringirla por dominio/referrer (`robertomistatas.github.io/*`) una vez rotada.
-  2. Opcional: limpiar el historial de git (`git filter-repo`) si se quiere borrar el rastro de la key antigua — de bajo impacto real ya que las Web API keys de Firebase no son secretas por diseño (ver nota abajo), pero recomendable por higiene. Esto reescribe hashes de commits y requiere force-push, así que se dejó fuera del fix automático a propósito.
-  > Nota: una vez rotada la key, la que quedó en el historial de git queda inutilizable de todas formas — girar la key es lo que realmente cierra el hallazgo, no el historial de git en sí.
+- **Hecho por Roberto el 2026-08-12:** rotó la API key en Google Cloud Console (Credentials → Rotar clave) y **borró la clave anterior** una vez confirmado que la app seguía funcionando con la nueva. La key vieja que quedó en el historial de git ya no es válida.
+- **Hecho (Claude) el 2026-08-12:** se actualizó `.env` local con la key nueva, se hizo rebuild y `npm run deploy`; se verificó por grep en el bundle generado que el JS de producción contiene la key nueva y ya no contiene la vieja (branch `gh-pages` @ `5031da7`).
+- **Pendiente (opcional, bajo impacto):** limpiar el historial de git (`git filter-repo`) para borrar el rastro de la key vieja del historial — ya no tiene impacto de seguridad real porque la key fue revocada, es solo higiene. Reescribe hashes de commits y requiere force-push, por eso se dejó fuera del fix automático.
 
-### 3.2 Auto-registro abierto = cualquiera puede crear una cuenta y ver datos de beneficiarios — ✅ UI corregida, ⏳ reglas de Firestore pendientes de desplegar
+### 3.2 Auto-registro abierto = cualquiera puede crear una cuenta y ver datos de beneficiarios — ✅ RESUELTO
 - Archivo: [`src/LoginPage.tsx`](src/LoginPage.tsx) — botón "¿No tienes cuenta? Regístrate" llama a `createUserWithEmailAndPassword` (línea 23) sin ninguna validación de dominio, invitación o aprobación.
 - En [`src/App.tsx:945-972`](src/App.tsx#L945-L972), en cuanto `authReady && userId` son verdaderos (o sea, en cuanto alguien se loguea o se registra), la app suscribe un listener a **toda** la colección `/artifacts/default-amaia-app/public/data/tickets` (ver `getTicketsCollectionPath`, línea 80) — sin filtrar por usuario.
 - Esa colección contiene nombre, RUT, teléfono y dirección de beneficiarios (adultos mayores) — datos personales sensibles.
@@ -90,10 +89,11 @@ No existe carpeta `docs/`, ni `README.md`, ni `firebase.json` / `.firebaserc` / 
   1. Se quitó la opción de auto-registro de [`src/LoginPage.tsx`](src/LoginPage.tsx) — ahora solo permite iniciar sesión, ya no llama a `createUserWithEmailAndPassword`. De ahora en adelante, las cuentas se crean manualmente desde la consola de Firebase (Authentication → Users → Add user).
   2. También se generalizó el mensaje de error de login (ya no expone `err.message` de Firebase, que puede revelar si un email existe o no) — mitigación adicional de enumeración de usuarios.
   3. Se versionó `firestore.rules` + `firebase.json` + `.firebaserc` en la raíz del repo, exigiendo `request.auth != null` para leer/escribir la colección de tickets y denegando por defecto cualquier otra ruta.
-- **Pendiente — requiere acción manual de Roberto:**
-  1. **Desplegar las reglas:** el Firebase CLI de esta máquina tiene la sesión vencida. Correr `firebase login --reauth` (abre el navegador) y luego `firebase deploy --only firestore:rules` desde la raíz del repo. Alternativa sin CLI: copiar el contenido de `firestore.rules` y pegarlo manualmente en Firebase Console → Firestore Database → Reglas → Publicar.
-  2. **Importante:** quitar el botón de registro de la UI no impide que alguien llame a `createUserWithEmailAndPassword` directamente contra el proyecto de Firebase (la config pública del cliente sigue siendo, por diseño, pública). El paso 1 (reglas desplegadas) es el que realmente cierra el acceso a los datos — sin eso, alguien que se registre "por fuera" de la UI seguiría entrando a Firestore igual que antes. Considerar además, en Firebase Console → Authentication → Settings, desactivar "Habilitar la creación de nuevas cuentas" si el proveedor Email/Password lo permite, como capa adicional.
-  3. Revisar si conviene restringir aún más las reglas (por ejemplo a un allowlist de emails de los 4 técnicos + admin) en vez de "cualquier usuario autenticado".
+- **Hecho por Roberto el 2026-08-12:** re-autenticó el Firebase CLI (`firebase login --reauth`).
+- **Hecho (Claude) el 2026-08-12:** `firebase deploy --only firestore:rules` desde la raíz del repo → `Deploy complete!`. Las reglas en `firestore.rules` (exigir `request.auth != null` para leer/escribir tickets, denegar todo lo demás) están activas en producción desde ese momento.
+- **Pendiente (mejora opcional, no bloqueante):**
+  1. Evaluar, en Firebase Console → Authentication → Settings, si el proveedor Email/Password tiene alguna opción para restringir aún más la creación de cuentas (defensa adicional más allá de haber quitado el botón de la UI).
+  2. Revisar si conviene restringir las reglas aún más (por ejemplo a un allowlist de emails de los 4 técnicos + admin) en vez de "cualquier usuario autenticado" — hoy cualquier cuenta que el administrador cree manualmente tiene acceso completo a todos los tickets.
 
 ---
 
@@ -171,15 +171,15 @@ No existe carpeta `docs/`, ni `README.md`, ni `firebase.json` / `.firebaserc` / 
 
 ## 8. Plan de acción sugerido (orden de prioridad)
 
-### Inmediato (antes de seguir desarrollando)
-1. Rotar la API key de Firebase expuesta y sacar `.env` del control de versiones (§3.1).
-2. Quitar el auto-registro público de `LoginPage.tsx` y revisar/endurecer las reglas de Firestore (§3.2).
-3. Versionar `firestore.rules` / `firebase.json` en el repo.
+### Inmediato (antes de seguir desarrollando) — ✅ COMPLETADO 2026-08-12
+1. ~~Rotar la API key de Firebase expuesta y sacar `.env` del control de versiones (§3.1).~~ ✅
+2. ~~Quitar el auto-registro público de `LoginPage.tsx` y revisar/endurecer las reglas de Firestore (§3.2).~~ ✅
+3. ~~Versionar `firestore.rules` / `firebase.json` en el repo y desplegarlas a producción.~~ ✅
 
 ### Corto plazo
 4. Corregir el bug de zona horaria en `formatDate` y en el filtro de `ReportesView` (§4.1, §4.2).
 5. `npm audit fix` + evaluar reemplazo de `xlsx` por la build parcheada de SheetJS (§4.3).
-6. Limpiar archivos huérfanos/duplicados: `gitignore`, `build/` trackeado, `src/print.css` (§6, #7-9).
+6. Limpiar archivos huérfanos/duplicados: ~~`gitignore` duplicado~~ ✅, `build/` trackeado, `src/print.css` (§6, #7-9).
 
 ### Mediano plazo
 7. Dividir `App.tsx` en componentes separados por archivo.
