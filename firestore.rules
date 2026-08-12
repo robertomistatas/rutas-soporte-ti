@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Datos de tickets de soporte de AMAIA.
+    // Solo usuarios autenticados (cuentas creadas manualmente por el
+    // administrador, ver src/LoginPage.tsx) pueden leer y escribir.
+    match /artifacts/{appId}/public/data/tickets/{ticketId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Cualquier otra ruta queda denegada por defecto.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
